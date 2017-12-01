@@ -12,12 +12,9 @@ import {
   View
 } from 'react-native';
 
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' +
-    'Cmd+D or shake for dev menu',
-  android: 'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
+import AudioControls from './components/AudioControls';
+
+const currentAudio = {};
 
 export default class App extends Component<{}> {
   render() {
@@ -29,9 +26,9 @@ export default class App extends Component<{}> {
         <Text style={styles.instructions}>
           To get started, edit App.js
         </Text>
-        <Text style={styles.instructions}>
-          {instructions}
-        </Text>
+        <AudioControls
+          currentAudio={currentAudio}
+        />
       </View>
     );
   }
