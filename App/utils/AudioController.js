@@ -31,11 +31,11 @@ class AudioController {
 	load(currentAudio, callback) {
 		//Apenas os dados do áudio atual são obrigatórios
 		this.audioProps = currentAudio;
-
+		console.log('AudioController.load()', this.audioProps.path);
 		//Verificar se o arquivo de áudio já foi baixado para definir player
-		if (this.audioProps.path != null) {
+		if (this.audioProps.path) {
 			//Áudio offline, this.player será instância do Sound
-			console.log('Audio offline');
+			console.log('Audio offline', this.player, this.audioProps);
 			this.type = 'offline';
 			Sound.setCategory('Playback');
 			this.player = new Sound(this.audioProps.path, Sound.MAIN_BUNDLE, (error) => {
@@ -45,10 +45,9 @@ class AudioController {
 				}
 				(callback) ? callback(this.player.isLoaded()) : null;
 			});
-			console.log('duration in seconds: ' + this.player.getDuration() + 'number of channels: ' + this.player.getNumberOfChannels());
 		} else {
 			//Áudio online, this.player será instância do RNAudioStreamer			
-			this.audioProps.type = 'streaming';
+			this.type = 'streaming';
 			this.player = RNAudioStreamer;
 			console.log('Loading audio streaming', this.player, this.audioProps);
 			this.player.setUrl(this.audioProps.url);
@@ -74,6 +73,7 @@ class AudioController {
 
 	play() {
 		if (this.player == null) return;
+		console.log('AudioController.play()', this.player);
 		//Aqui deve ser implementada uma chamada para a função play, independente da biblioteca
 		(this.type === 'streaming') ? this.player.play() : this.player.play(this.onAudioFinish.bind(this));
 		this.paused = false;
@@ -122,25 +122,27 @@ class AudioController {
 	}
 
 	playNext() {
-		console.log('Next Audio on AudioController');
 		const nextIndex = this.currentIndex + 1;
-		if (hasNext()) {
+		if (!this.hasNext()) {
 			return; // O próximo indice deve ser um indice válido na playlist
 			//throw 'Playlist must contain index of next audio'
 		}
+		this.pause();
 		this.currentIndex = nextIndex;
 		this.selectedAudio = this.playlist[nextIndex];
+		this.load(this.selectedAudio, (isLoaded) => (isLoaded) ? this.play() : null);
 	}
 
 	playPrevious() {
-		let previousIndex = this.currentIndex - 1;
-		if (!this.playlist[previousIndex]) {
+		const previousIndex = this.currentIndex - 1;
+		if (!this.hasPrevious()) {
 			return; // O próximo indice deve ser um indice válido na playlist
 			//throw 'Playlist must contain index of next audio'
 		}
+		this.pause();
 		this.currentIndex = previousIndex;
-		this.currentAudio = this.audios[this.playlist[previousIndex]];
-		//Verificar se vai ser aqui que vai ser chamado o load do próximo audio
+		this.selectedAudio = this.playlist[previousIndex];
+		this.load(this.selectedAudio, (isLoaded) => (isLoaded) ? this.play() : null);
 	}
 
 	onChange(status) {
@@ -156,6 +158,7 @@ class AudioController {
 	}
 
 	getCurrentTime(callback) {
+		console.log('getCUrrentTime', callback, this.player, this.type, this.currentAudio);
 		if (this.player == null) return;
 		if (this.type == 'streaming')
 			this.player.currentTime((err, seconds) => {
@@ -167,6 +170,7 @@ class AudioController {
 	}
 
 	getDuration(callback) {
+		console.log('getDuration', this.type);
 		if (this.player == null) return;
 		if (this.type == 'streaming') {
 			this.player.duration((err, seconds) => {

@@ -36,7 +36,7 @@ class AudioControls extends Component {
     }
 
     onChangeStatus = (status) => {
-        console.log('Status changed', status);
+        // console.log('Status changed', status);
         switch (status) {
             case AudioController.status.PLAYING:
                 this.setState({ isPlaying: true });
@@ -51,7 +51,6 @@ class AudioControls extends Component {
 
     renderPlayerIcon() {
         const { isPlaying } = this.state;
-        console.log('renderPlayerIcon');
         return (
             <TouchableOpacity
                 onPress={() => (isPlaying) ? AudioController.pause() : AudioController.play()}
@@ -68,10 +67,7 @@ class AudioControls extends Component {
         if (AudioController.hasNext()) {
             return (
                 <TouchableOpacity onPress={() => {
-                    //AudioManager.nextAudio();
-                    //this.props.changeTrack(AudioManager.selectedAudio);
-                    //this._togglePlay();
-                    //this.setState({ isPlaying: !this.state.isPlaying });
+                    AudioController.playNext();
                 }} >
                     <Image source={images.iconNext} style={styles.nextButton} />
                 </TouchableOpacity>
@@ -86,10 +82,7 @@ class AudioControls extends Component {
         if (AudioController.hasPrevious()) {
             return (
                 <TouchableOpacity onPress={() => {
-                    //AudioManager.nextAudio();
-                    //this.props.changeTrack(AudioManager.selectedAudio);
-                    //this._togglePlay();
-                    //this.setState({ isPlaying: !this.state.isPlaying });
+                    AudioController.playPrevious();
                 }} >
                     <Image source={images.iconPrevious} style={styles.previousButton} />
                 </TouchableOpacity>
