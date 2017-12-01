@@ -11,8 +11,8 @@ import 'moment/locale/pt-br';
 
 import images from '../../config/images';
 import colors from '../../config/colors';
+import AudioController from '../../utils/AudioController';
 // import AudioManager from '../../utils/AudioManager';
-// import AudioController from '../../utils/AudioController';
 
 const moment = require('moment');
 
@@ -23,63 +23,45 @@ class AudioControls extends Component {
         super(props);
 
         this.state = {
-            isPlaying: false,
             duration: 0,
             currentTime: 0,
-            isReady: true
+            isReady: true,
+            isPlaying: false
         };
     }
 
     componentWillMount() {
-
+        const { playlist, initialTrack } = this.props;
+        AudioController.init(playlist, initialTrack, this.onChangeStatus);
     }
 
-    componentWillUnmount() {
-
+    onChangeStatus = (status) => {
+        console.log('Status changed', status);
+        switch (status) {
+            case AudioController.status.PLAYING:
+                this.setState({ isPlaying: true });
+                break;
+            case AudioController.status.PAUSED:
+                this.setState({ isPlaying: false });
+                break;
+            default:
+                break;
+        }
     }
 
-    _togglePlay() {
-
-    }
-
-    _handlePlayerIcon() {
-        const { isPlaying, isReady } = this.state;
-        if (!isReady) {
-            return (
+    renderPlayerIcon() {
+        const { isPlaying } = this.state;
+        console.log('renderPlayerIcon');
+        return (
+            <TouchableOpacity
+                onPress={() => AudioController.togglePlay()}
+            >
                 <Image
-                    source={images.iconPlay}
-                    style={[styles.playButton, { tintColor: colors.darkGrey }]}
+                    source={(isPlaying) ? images.iconPause : images.iconPlay}
+                    style={styles.playButton}
                 />
-            );
-        }
-        if (isPlaying) {
-            return (
-                <TouchableOpacity
-                    onPress={() => {
-                        this.setState({ isPlaying: !isPlaying });
-                        this._togglePlay();
-                        this.props.playHandler();
-                    }}
-                >
-                    <Image
-                        source={images.iconPause}
-                        style={styles.playButton}
-                    />
-                </TouchableOpacity>
-            );
-        } else {
-            return (
-                <TouchableOpacity
-                    onPress={() => {
-                        this.setState({ isPlaying: !isPlaying });
-                        this._togglePlay();
-                        this.props.playHandler();
-                    }}
-                >
-                    <Image source={images.iconPlay} style={styles.playButton} />
-                </TouchableOpacity>
-            );
-        }
+            </TouchableOpacity>
+        );
     }
 
     _handleNextIcon() {
@@ -124,7 +106,7 @@ class AudioControls extends Component {
                 </View>
                 <View style={styles.buttons}>
                     {this._handlePreviousIcon()}
-                    {this._handlePlayerIcon()}
+                    {this.renderPlayerIcon()}
                     {this._handleNextIcon()}
                 </View>
             </View>

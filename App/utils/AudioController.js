@@ -1,14 +1,29 @@
+import MusicControl from 'react-native-music-control';
 import Sound from 'react-native-sound';
 import RNAudioStreamer from 'react-native-audio-streamer';
-
-const MusicControl = require('react-native-music-control');
 
 class AudioController {
 	constructor() {
 		this.audioProps = {}; //Propriedades do áudio atual: key*, title*, url*, author, thumbnail, path, currentTime, duration        
 		this.player = null; //Instância do Sound ou do RNAudioStreamer
-		this.paused = false;
+		this.paused = true;
 		this.type = 'streaming';
+		this.playlist = [];
+		this.status = {
+			PLAYING: 'PLAYING',
+			LOADING: 'LOADING',
+			PAUSED: 'PAUSED',
+			STOPPED: 'STOPPED',
+			SEEKING: 'SEEKING',
+			ERROR: 'ERROR'
+		}
+	}
+
+	init(playlist, track = 0, callback) {
+		this.playlist = playlist;
+		this.audioProps = playlist[track];
+		this.load(this.audioProps, null);
+		this.setOnChange(callback);
 	}
 
 	load(currentAudio, callback) {
@@ -20,11 +35,15 @@ class AudioController {
 			//Áudio offline, this.player será instância do Sound
 			console.log('Audio offline');
 			this.type = 'offline';
-			Sound.setCategory('Playback', true);
-			this.player = new Sound(this.audioProps.path, undefined, (error) => {
-				if (error) return;
+			Sound.setCategory('Playback');
+			this.player = new Sound(this.audioProps.path, Sound.MAIN_BUNDLE, (error) => {
+				if (error) {
+					console.log('Error', error);
+					return;
+				}
 				(callback) ? callback(this.player.isLoaded()) : null;
 			});
+			console.log('duration in seconds: ' + this.player.getDuration() + 'number of channels: ' + this.player.getNumberOfChannels());
 		} else {
 			//Áudio online, this.player será instância do RNAudioStreamer			
 			this.audioProps.type = 'streaming';
@@ -51,19 +70,18 @@ class AudioController {
 
 	}
 
-	play() {
+	togglePlay() {
 		if (this.player == null) return;
-		//Aqui deve ser implementada uma chamada para a função play, independente da biblioteca
-		(this.type === 'streaming') ? this.player.play() : this.player.play(this.onAudioFinish.bind(this));
-		this.paused = false;
-	}
-
-	pause() {
-		if (this.player == null) return;
-		//Aqui deve ser implementada uma chamada para a função pause, independente da biblioteca
-		this.player.pause();
-		this.paused = true;
-		clearInterval(this.pulse);
+		if (this.paused) {
+			//Aqui deve ser implementada uma chamada para a função play, independente da biblioteca
+			(this.type === 'streaming') ? this.player.play() : this.player.play(this.onAudioFinish.bind(this));
+			this.paused = false;
+			this.onChange(this.status.PLAYING);
+		} else {
+			this.player.pause();
+			this.paused = true;
+			this.onChange(this.status.PAUSED);
+		}
 	}
 
 	seek(seconds) {
@@ -86,6 +104,14 @@ class AudioController {
 				this.seek(time); //seconds
 			});
 		});
+	}
+
+	onChange(status) {
+		return;
+	}
+
+	setOnChange(callback) {
+		this.onChange = callback;
 	}
 
 	getAudioProps(callback) {
@@ -222,10 +248,12 @@ class AudioController {
 
 	initializeMusicControlEvents() {
 		MusicControl.on('pause', () => {
-			this.pause();
+			this.togglePlay();
+			this.music_control_pause();
 		});
 		MusicControl.on('play', () => {
-			this.play();
+			this.togglePlay();
+			this.music_control_play();
 		});
 		MusicControl.on('skipForward', () => {
 			this.skip(30);
