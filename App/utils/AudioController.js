@@ -9,6 +9,7 @@ class AudioController {
 		this.paused = true;
 		this.type = 'streaming';
 		this.playlist = [];
+		this.currentIndex = 0;
 		this.status = {
 			PLAYING: 'PLAYING',
 			LOADING: 'LOADING',
@@ -21,6 +22,7 @@ class AudioController {
 
 	init(playlist, track = 0, callback) {
 		this.playlist = playlist;
+		this.currentIndex = track;
 		this.audioProps = playlist[track];
 		this.load(this.audioProps, null);
 		this.setOnChange(callback);
@@ -70,18 +72,21 @@ class AudioController {
 
 	}
 
-	togglePlay() {
+	play() {
 		if (this.player == null) return;
-		if (this.paused) {
-			//Aqui deve ser implementada uma chamada para a função play, independente da biblioteca
-			(this.type === 'streaming') ? this.player.play() : this.player.play(this.onAudioFinish.bind(this));
-			this.paused = false;
-			this.onChange(this.status.PLAYING);
-		} else {
-			this.player.pause();
-			this.paused = true;
-			this.onChange(this.status.PAUSED);
-		}
+		//Aqui deve ser implementada uma chamada para a função play, independente da biblioteca
+		(this.type === 'streaming') ? this.player.play() : this.player.play(this.onAudioFinish.bind(this));
+		this.paused = false;
+		this.onChange(this.status.PLAYING);
+		this.music_control_play();
+	}
+
+	pause() {
+		if (this.player == null) return;
+		this.player.pause();
+		this.paused = true;
+		this.onChange(this.status.PAUSED);
+		this.music_control_pause();
 	}
 
 	seek(seconds) {
@@ -104,6 +109,38 @@ class AudioController {
 				this.seek(time); //seconds
 			});
 		});
+	}
+
+	hasNext() {
+		const nextIndex = this.currentIndex + 1;
+		return this.playlist[nextIndex] ? true : false;
+	}
+
+	hasPrevious() {
+		const previousIndex = this.currentIndex - 1;
+		return this.playlist[previousIndex] ? true : false;
+	}
+
+	playNext() {
+		console.log('Next Audio on AudioController');
+		const nextIndex = this.currentIndex + 1;
+		if (hasNext()) {
+			return; // O próximo indice deve ser um indice válido na playlist
+			//throw 'Playlist must contain index of next audio'
+		}
+		this.currentIndex = nextIndex;
+		this.selectedAudio = this.playlist[nextIndex];
+	}
+
+	playPrevious() {
+		let previousIndex = this.currentIndex - 1;
+		if (!this.playlist[previousIndex]) {
+			return; // O próximo indice deve ser um indice válido na playlist
+			//throw 'Playlist must contain index of next audio'
+		}
+		this.currentIndex = previousIndex;
+		this.currentAudio = this.audios[this.playlist[previousIndex]];
+		//Verificar se vai ser aqui que vai ser chamado o load do próximo audio
 	}
 
 	onChange(status) {
@@ -248,11 +285,11 @@ class AudioController {
 
 	initializeMusicControlEvents() {
 		MusicControl.on('pause', () => {
-			this.togglePlay();
+			this.pause();
 			this.music_control_pause();
 		});
 		MusicControl.on('play', () => {
-			this.togglePlay();
+			this.play();
 			this.music_control_play();
 		});
 		MusicControl.on('skipForward', () => {

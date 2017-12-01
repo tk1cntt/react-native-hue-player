@@ -54,7 +54,7 @@ class AudioControls extends Component {
         console.log('renderPlayerIcon');
         return (
             <TouchableOpacity
-                onPress={() => AudioController.togglePlay()}
+                onPress={() => (isPlaying) ? AudioController.pause() : AudioController.play()}
             >
                 <Image
                     source={(isPlaying) ? images.iconPause : images.iconPlay}
@@ -64,12 +64,40 @@ class AudioControls extends Component {
         );
     }
 
-    _handleNextIcon() {
-
+    renderNextIcon() {
+        if (AudioController.hasNext()) {
+            return (
+                <TouchableOpacity onPress={() => {
+                    //AudioManager.nextAudio();
+                    //this.props.changeTrack(AudioManager.selectedAudio);
+                    //this._togglePlay();
+                    //this.setState({ isPlaying: !this.state.isPlaying });
+                }} >
+                    <Image source={images.iconNext} style={styles.nextButton} />
+                </TouchableOpacity>
+            );
+        }
+        return (
+            <Image source={images.iconNext} style={[styles.nextButton, { tintColor: '#888' }]} />
+        );
     }
 
-    _handlePreviousIcon() {
-
+    renderPreviousIcon() {
+        if (AudioController.hasPrevious()) {
+            return (
+                <TouchableOpacity onPress={() => {
+                    //AudioManager.nextAudio();
+                    //this.props.changeTrack(AudioManager.selectedAudio);
+                    //this._togglePlay();
+                    //this.setState({ isPlaying: !this.state.isPlaying });
+                }} >
+                    <Image source={images.iconPrevious} style={styles.previousButton} />
+                </TouchableOpacity>
+            );
+        }
+        return (
+            <Image source={images.iconPrevious} style={[styles.previousButton, { tintColor: '#888' }]} />
+        );
     }
 
     render() {
@@ -105,9 +133,9 @@ class AudioControls extends Component {
                     </Text>
                 </View>
                 <View style={styles.buttons}>
-                    {this._handlePreviousIcon()}
+                    {this.renderPreviousIcon()}
                     {this.renderPlayerIcon()}
-                    {this._handleNextIcon()}
+                    {this.renderNextIcon()}
                 </View>
             </View>
         );
