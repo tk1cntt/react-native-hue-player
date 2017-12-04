@@ -13,6 +13,7 @@ class AudioController {
 		this.status = {
 			PLAYING: 'PLAYING',
 			LOADING: 'LOADING',
+			LOADED: 'LOADED',
 			PAUSED: 'PAUSED',
 			STOPPED: 'STOPPED',
 			SEEKING: 'SEEKING',
@@ -24,8 +25,9 @@ class AudioController {
 		this.playlist = playlist;
 		this.currentIndex = track;
 		this.audioProps = playlist[track];
-		this.load(this.audioProps, null);
 		this.setOnChange(callback);
+		this.load(this.audioProps, null);
+		this.onChange(this.status.LOADING);
 	}
 
 	load(currentAudio, callback) {
@@ -68,6 +70,7 @@ class AudioController {
 		this.getDuration(seconds => {
 			this.audioProps.duration = seconds;
 		});
+		this.onChange(this.status.LOADED);
 
 	}
 
@@ -158,7 +161,6 @@ class AudioController {
 	}
 
 	getCurrentTime(callback) {
-		console.log('getCUrrentTime', callback, this.player, this.type, this.currentAudio);
 		if (this.player == null) return;
 		if (this.type == 'streaming')
 			this.player.currentTime((err, seconds) => {
@@ -170,14 +172,15 @@ class AudioController {
 	}
 
 	getDuration(callback) {
-		console.log('getDuration', this.type);
 		if (this.player == null) return;
 		if (this.type == 'streaming') {
 			this.player.duration((err, seconds) => {
-				if (!err)
+				if (!err && seconds > 0)
 					callback(seconds);
-				else
+				else {
 					callback(-1);
+					console.log("ERRO GETDURATION:", err)
+				}
 			});
 		} else {
 			callback(this.player.getDuration());

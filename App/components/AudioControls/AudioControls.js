@@ -12,7 +12,6 @@ import 'moment/locale/pt-br';
 import images from '../../config/images';
 import colors from '../../config/colors';
 import AudioController from '../../utils/AudioController';
-// import AudioManager from '../../utils/AudioManager';
 
 const moment = require('moment');
 
@@ -36,13 +35,19 @@ class AudioControls extends Component {
     }
 
     onChangeStatus = (status) => {
-        // console.log('Status changed', status);
+        console.log('Status changed', status);
         switch (status) {
             case AudioController.status.PLAYING:
                 this.setState({ isPlaying: true });
+                AudioController.getDuration((seconds) => {
+                    console.log('seconds', seconds);
+                    this.setState({ duration: seconds });
+                });
                 break;
             case AudioController.status.PAUSED:
                 this.setState({ isPlaying: false });
+                break;
+            case AudioController.status.LOADED:
                 break;
             default:
                 break;
@@ -112,11 +117,12 @@ class AudioControls extends Component {
                         thumbTintColor={colors.green}
                         value={currentTime}
                         onSlidingComplete={seconds => {
-                            // AudioManager.seek(seconds);
+                            console.log('goto ' + seconds + 's');
+                            AudioController.seek(seconds);
                         }}
                         onValueChange={seconds => {
                             this.setState({ currentTime: seconds });
-                            // AudioManager.seek(seconds);
+                            AudioController.seek(seconds);
                         }}
                     />
                     <Text numberOfLines={1} style={styles.timeLabel}>
