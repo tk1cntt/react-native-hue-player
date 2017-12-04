@@ -2,6 +2,8 @@ import MusicControl from 'react-native-music-control';
 import Sound from 'react-native-sound';
 import RNAudioStreamer from 'react-native-audio-streamer';
 
+import { DeviceEventEmitter } from 'react-native';
+
 class AudioController {
 	constructor() {
 		this.audioProps = {}; //Propriedades do áudio atual: key*, title*, url*, author, thumbnail, path, currentTime, duration        
@@ -28,6 +30,7 @@ class AudioController {
 		this.setOnChange(callback);
 		this.load(this.audioProps, null);
 		this.onChange(this.status.LOADING);
+		this.subscription = DeviceEventEmitter.addListener('RNAudioStreamerStatusChanged', this.onStatusChanged.bind(this))
 	}
 
 	load(currentAudio, callback) {
@@ -45,8 +48,12 @@ class AudioController {
 					console.log('Error', error);
 					return;
 				}
-				(callback) ? callback(this.player.isLoaded()) : null;
+				(callback) ? callback(() => {
+					this.player.isLoaded();
+				}) : null;
 			});
+			console.log('load() this.player.getDuration()', this.player.getDuration())
+
 		} else {
 			//Áudio online, this.player será instância do RNAudioStreamer			
 			this.type = 'streaming';
@@ -70,8 +77,6 @@ class AudioController {
 		this.getDuration(seconds => {
 			this.audioProps.duration = seconds;
 		});
-		this.onChange(this.status.LOADED);
-
 	}
 
 	play() {
@@ -96,7 +101,7 @@ class AudioController {
 		console.log('seek To ', seconds, this.player);
 		if (this.player == null) return;
 		//Aqui deve ser implementada uma chamada para a função seek, independente da biblioteca
-		(this.type == 'streaming') ? this.player.seekToTime(seconds) : this.player.setCurrentTime(seconds);
+		(this.type === 'streaming') ? this.player.seekToTime(seconds) : this.player.setCurrentTime(seconds);
 		this.music_control_seek(seconds);
 		this.music_control_refresh();
 	}
@@ -133,7 +138,7 @@ class AudioController {
 		this.pause();
 		this.currentIndex = nextIndex;
 		this.selectedAudio = this.playlist[nextIndex];
-		this.load(this.selectedAudio, (isLoaded) => (isLoaded) ? this.play() : null);
+		this.playAfterLoad();
 	}
 
 	playPrevious() {
@@ -145,7 +150,16 @@ class AudioController {
 		this.pause();
 		this.currentIndex = previousIndex;
 		this.selectedAudio = this.playlist[previousIndex];
-		this.load(this.selectedAudio, (isLoaded) => (isLoaded) ? this.play() : null);
+		this.playAfterLoad();
+	}
+
+	playAfterLoad() {
+		this.load(this.selectedAudio, (isLoaded) => {
+			if (isLoaded) {
+				this.play();
+				if (this.type !== 'streaming') this.onChange(this.status.LOADED);
+			} else return null;
+		});
 	}
 
 	onChange(status) {
@@ -171,6 +185,13 @@ class AudioController {
 			this.player.getCurrentTime(callback);
 	}
 
+	onStatusChanged(status) {
+		console.log('Streamer status', status);
+		if (status === 'PAUSED' || status === 'PLAYING') {
+			this.onChange(this.status.LOADED);
+		}
+	}
+
 	getDuration(callback) {
 		if (this.player == null) return;
 		if (this.type == 'streaming') {
@@ -179,11 +200,12 @@ class AudioController {
 					callback(seconds);
 				else {
 					callback(-1);
-					console.log("ERRO GETDURATION:", err)
 				}
 			});
 		} else {
-			callback(this.player.getDuration());
+			console.log('this.player.getDuration()', this.player.getDuration())
+			if (this.player.getDuration() > 0)
+				callback(this.player.getDuration());
 		}
 	}
 
