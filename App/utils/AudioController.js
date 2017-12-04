@@ -81,7 +81,7 @@ class AudioController {
 		this.onAudioProgress();
 
 		//Configura Player e Music Control para iniciar de onde o usuário parou
-		if (typeof this.audioProps.currentTime !== 'undefined') {
+		if (typeof this.audioProps.currentTime !== 'undefined' && this.audioProps.currentTime >= 0) {
 			this.seek(this.audioProps.currentTime);
 		} else {
 			console.log('Não tem currentTime', this.audioProps);
@@ -108,6 +108,9 @@ class AudioController {
 		//Aqui deve ser implementada uma chamada para a função seek, independente da biblioteca
 		//console.log('seek To ', seconds, this.player);
 		(this.type === 'streaming') ? this.player.seekToTime(seconds) : this.player.setCurrentTime(seconds);
+		//Atualiza tempo atual
+		this.audioProps.currentTime = seconds;
+		this.currentAudioListener(seconds);
 		this.music_control_seek(seconds);
 		this.music_control_refresh();
 	}
