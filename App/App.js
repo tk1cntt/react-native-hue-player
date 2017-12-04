@@ -28,6 +28,11 @@ const playlist = [
     title: 'Áudio 02',
     url: 'https://s3-sa-east-1.amazonaws.com/claudio-henrique/podcasts/POD_1.mp3',
     path: 'audio2.mp3'
+  },
+  {
+    key: 'audio3',
+    title: 'Áudio 03',
+    url: 'https://s3-sa-east-1.amazonaws.com/claudio-henrique/podcasts/POD_1.mp3'
   }
 ];
 

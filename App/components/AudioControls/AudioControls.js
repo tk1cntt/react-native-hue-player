@@ -39,10 +39,6 @@ class AudioControls extends Component {
         switch (status) {
             case AudioController.status.PLAYING:
                 this.setState({ isPlaying: true });
-                // AudioController.getDuration((seconds) => {
-                //     console.log('Playing seconds', seconds);
-                //     this.setState({ duration: seconds });
-                // });
                 break;
             case AudioController.status.PAUSED:
                 this.setState({ isPlaying: false });

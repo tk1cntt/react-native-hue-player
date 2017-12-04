@@ -28,9 +28,9 @@ class AudioController {
 		this.currentIndex = track;
 		this.audioProps = playlist[track];
 		this.setOnChange(callback);
-		this.load(this.audioProps, null);
 		this.onChange(this.status.LOADING);
-		this.subscription = DeviceEventEmitter.addListener('RNAudioStreamerStatusChanged', this.onStatusChanged.bind(this))
+		this.load(this.audioProps, (isLoaded) => isLoaded ? this.onChange(this.status.LOADED) : null);
+		this.subscription = DeviceEventEmitter.addListener('RNAudioStreamerStatusChanged', this.onStatusChanged.bind(this));
 	}
 
 	load(currentAudio, callback) {
@@ -119,44 +119,37 @@ class AudioController {
 		});
 	}
 
+	hasTrack(index) {
+		return this.playlist[index] ? true : false;
+	}
+
 	hasNext() {
-		const nextIndex = this.currentIndex + 1;
-		return this.playlist[nextIndex] ? true : false;
+		return this.playlist[this.currentIndex + 1] ? true : false;
 	}
 
 	hasPrevious() {
-		const previousIndex = this.currentIndex - 1;
-		return this.playlist[previousIndex] ? true : false;
+		return this.playlist[this.currentIndex - 1] ? true : false;
 	}
 
-	playNext() {
-		const nextIndex = this.currentIndex + 1;
-		if (!this.hasNext()) {
-			return; // O próximo indice deve ser um indice válido na playlist
-			//throw 'Playlist must contain index of next audio'
-		}
-		this.pause();
-		this.currentIndex = nextIndex;
-		this.selectedAudio = this.playlist[nextIndex];
-		this.playAfterLoad();
+	playnext() {
+		this.playAnotherTrack(this.currentIndex + 1);
 	}
 
 	playPrevious() {
-		const previousIndex = this.currentIndex - 1;
-		if (!this.hasPrevious()) {
+		this.playAnotherTrack(this.currentIndex - 1);
+	}
+
+	playAnotherTrack(index) {
+		if (!this.hasTrack(index)) {
 			return; // O próximo indice deve ser um indice válido na playlist
 			//throw 'Playlist must contain index of next audio'
 		}
+		this.currentIndex = index;
 		this.pause();
-		this.currentIndex = previousIndex;
-		this.selectedAudio = this.playlist[previousIndex];
-		this.playAfterLoad();
-	}
-
-	playAfterLoad() {
+		this.selectedAudio = this.playlist[this.currentIndex];
 		this.load(this.selectedAudio, (isLoaded) => {
+			this.play();
 			if (isLoaded) {
-				this.play();
 				if (this.type !== 'streaming') this.onChange(this.status.LOADED);
 			} else return null;
 		});
