@@ -12,6 +12,8 @@ class AudioController {
 		this.type = 'streaming';
 		this.playlist = [];
 		this.currentIndex = 0;
+		this.currentTimeListener = () => null;
+		this.onChange = () => null;
 		this.status = {
 			PLAYING: 'PLAYING',
 			LOADING: 'LOADING',
@@ -95,6 +97,7 @@ class AudioController {
 		this.paused = true;
 		this.onChange(this.status.PAUSED);
 		this.music_control_pause();
+		clearInterval(this.currentTimeListener);
 	}
 
 	seek(seconds) {
@@ -153,10 +156,6 @@ class AudioController {
 				if (this.type !== 'streaming') this.onChange(this.status.LOADED);
 			} else return null;
 		});
-	}
-
-	onChange(status) {
-		return;
 	}
 
 	setOnChange(callback) {
@@ -225,7 +224,7 @@ class AudioController {
 
 	onAudioProgress(callback) {
 		//Atualizando currentTime na audioProps
-		this.pulse = setInterval(() => {
+		this.currentTimeListener = setInterval(() => {
 			this.getCurrentTime(seconds => {
 				this.audioProps.currentTime = seconds;
 				callback(seconds);
@@ -235,6 +234,7 @@ class AudioController {
 
 	onAudioFinish() {
 		this.music_control_reset();
+		clearInterval(this.currentTimeListener);
 	}
 
 	//------------Alterar Estados do Music Control------------//

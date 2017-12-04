@@ -32,6 +32,7 @@ class AudioControls extends Component {
     componentWillMount() {
         const { playlist, initialTrack } = this.props;
         AudioController.init(playlist, initialTrack, this.onChangeStatus);
+        AudioController.onAudioProgress(this.updateCurrentTime);
     }
 
     onChangeStatus = (status) => {
@@ -52,6 +53,10 @@ class AudioControls extends Component {
             default:
                 break;
         }
+    }
+
+    updateCurrentTime = (seconds) => {
+        this.setState({ currentTime: seconds });
     }
 
     renderPlayerIcon() {
