@@ -24,6 +24,7 @@ class AudioControls extends Component {
         this.state = {
             duration: 0,
             currentTime: 0,
+            currentSong: {},
             isReady: true,
             isPlaying: false
         };
@@ -31,12 +32,11 @@ class AudioControls extends Component {
 
     componentWillMount() {
         const { playlist, initialTrack } = this.props;
-        AudioController.init(playlist, initialTrack, this.onChangeStatus);
-        AudioController.onAudioProgress(this.updateCurrentTime);
+        AudioController.init(playlist, initialTrack, this.onChangeStatus, this.updateCurrentTime);
     }
 
     onChangeStatus = (status) => {
-        console.log('Status changed', status);
+        //console.log('Status changed', status);
         switch (status) {
             case AudioController.status.PLAYING:
                 this.setState({ isPlaying: true });
@@ -46,12 +46,12 @@ class AudioControls extends Component {
                 break;
             case AudioController.status.LOADED:
                 AudioController.getDuration((seconds) => {
-                    console.log('seconds', seconds);
                     this.setState({ duration: seconds });
                 });
+                this.setState({ currentSong: AudioController.audioProps });
                 break;
             default:
-                break;
+                return;
         }
     }
 
@@ -107,6 +107,7 @@ class AudioControls extends Component {
         const { currentTime, duration } = this.state;
         return (
             <View style={styles.container}>
+                <Image source={{ uri: this.state.currentSong.thumbnail }} style={styles.thumbnail} />
                 <View style={styles.playbackContainer}>
                     <Text numberOfLines={1} style={styles.timeLabel}>
                         {currentTime
@@ -122,7 +123,6 @@ class AudioControls extends Component {
                         thumbTintColor={colors.green}
                         value={currentTime}
                         onSlidingComplete={seconds => {
-                            console.log('goto ' + seconds + 's');
                             AudioController.seek(seconds);
                         }}
                         onValueChange={seconds => {
@@ -148,7 +148,12 @@ class AudioControls extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        width: "100%"
+        width: '100%',
+    },
+    thumbnail: {
+        width: '50%',
+        height: '50%',
+        alignSelf: 'center'
     },
     buttons: {
         alignItems: "center",

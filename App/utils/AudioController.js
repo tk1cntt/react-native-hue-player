@@ -12,6 +12,7 @@ class AudioController {
 		this.type = 'streaming';
 		this.playlist = [];
 		this.currentIndex = 0;
+		this.currentAudioListener = () => null;
 		this.currentTimeListener = () => null;
 		this.onChange = () => null;
 		this.status = {
@@ -25,10 +26,11 @@ class AudioController {
 		}
 	}
 
-	init(playlist, track = 0, callback) {
+	init(playlist, track = 0, callback, currentAudioListener) {
 		this.playlist = playlist;
 		this.currentIndex = track;
 		this.audioProps = playlist[track];
+		this.currentAudioListener = currentAudioListener;
 		this.setOnChange(callback);
 		this.onChange(this.status.LOADING);
 		this.load(this.audioProps, (isLoaded) => isLoaded ? this.onChange(this.status.LOADED) : null);
@@ -36,44 +38,31 @@ class AudioController {
 	}
 
 	load(currentAudio, callback) {
+		//console.log('this.playList', this.playlist);
 		//Apenas os dados do áudio atual são obrigatórios
 		this.audioProps = currentAudio;
-		console.log('AudioController.load()', this.audioProps.path);
 		//Verificar se o arquivo de áudio já foi baixado para definir player
 		if (this.audioProps.path) {
 			//Áudio offline, this.player será instância do Sound
-			console.log('Audio offline', this.player, this.audioProps);
 			this.type = 'offline';
 			Sound.setCategory('Playback');
 			this.player = new Sound(this.audioProps.path, Sound.MAIN_BUNDLE, (error) => {
-				if (error) {
-					console.log('Error', error);
-					return;
-				}
-				(callback) ? callback(() => {
-					this.player.isLoaded();
-				}) : null;
+				if (error) return;
+
+				(callback) ? callback(() => this.player.isLoaded()) : null;
 			});
-			console.log('load() this.player.getDuration()', this.player.getDuration())
 
 		} else {
-			//Áudio online, this.player será instância do RNAudioStreamer			
+			//Áudio online, this.player será instância do RNAudioStreamer
 			this.type = 'streaming';
 			this.player = RNAudioStreamer;
-			console.log('Loading audio streaming', this.player, this.audioProps);
 			this.player.setUrl(this.audioProps.url);
 			(callback) ? callback(true) : null;
 		}
 
-		this.startMusicControl();
+		//console.log(`Loading audio ${this.type}`, this.player, this.audioProps);
 
-		//Configura Player e Music Control para iniciar de onde o usuário parou
-		if (typeof this.audioProps.currentTime !== 'undefined') {
-			this.seek(this.audioProps.currentTime);
-			this.music_control_seek(this.audioProps.currentTime);
-		} else {
-			console.log('Não tem currentTime', this.audioProps);
-		}
+		this.startMusicControl();
 
 		//Atualiza a duração do áudio
 		this.getDuration(seconds => {
@@ -82,10 +71,22 @@ class AudioController {
 	}
 
 	play() {
+		//console.log('AudioController.play()', this.player);
+
 		if (this.player == null) return;
-		console.log('AudioController.play()', this.player);
+
 		//Aqui deve ser implementada uma chamada para a função play, independente da biblioteca
 		(this.type === 'streaming') ? this.player.play() : this.player.play(this.onAudioFinish.bind(this));
+
+		this.onAudioProgress();
+
+		//Configura Player e Music Control para iniciar de onde o usuário parou
+		if (typeof this.audioProps.currentTime !== 'undefined') {
+			this.seek(this.audioProps.currentTime);
+		} else {
+			console.log('Não tem currentTime', this.audioProps);
+		}
+
 		this.paused = false;
 		this.onChange(this.status.PLAYING);
 		this.music_control_play();
@@ -94,16 +95,18 @@ class AudioController {
 	pause() {
 		if (this.player == null) return;
 		this.player.pause();
+		this.audioProps.currentTime = parseInt(this.audioProps.currentTime);
+		clearInterval(this.currentTimeListener);
 		this.paused = true;
 		this.onChange(this.status.PAUSED);
 		this.music_control_pause();
-		clearInterval(this.currentTimeListener);
 	}
 
 	seek(seconds) {
-		console.log('seek To ', seconds, this.player);
+		seconds = parseInt(seconds);
 		if (this.player == null) return;
 		//Aqui deve ser implementada uma chamada para a função seek, independente da biblioteca
+		//console.log('seek To ', seconds, this.player);
 		(this.type === 'streaming') ? this.player.seekToTime(seconds) : this.player.setCurrentTime(seconds);
 		this.music_control_seek(seconds);
 		this.music_control_refresh();
@@ -134,7 +137,7 @@ class AudioController {
 		return this.playlist[this.currentIndex - 1] ? true : false;
 	}
 
-	playnext() {
+	playNext() {
 		this.playAnotherTrack(this.currentIndex + 1);
 	}
 
@@ -162,23 +165,23 @@ class AudioController {
 		this.onChange = callback;
 	}
 
-	getAudioProps(callback) {
-		callback(this.audioProps);
+	getAudioProps() {
+		return this.audioProps;
 	}
 
 	getCurrentTime(callback) {
 		if (this.player == null) return;
 		if (this.type == 'streaming')
 			this.player.currentTime((err, seconds) => {
-				if (!err)
-					callback(seconds);
+				if (!err) callback(seconds);
 			});
-		else
+		else {
 			this.player.getCurrentTime(callback);
+		}
 	}
 
 	onStatusChanged(status) {
-		console.log('Streamer status', status);
+		//console.log('Streamer status', status);
 		if (status === 'PAUSED' || status === 'PLAYING') {
 			this.onChange(this.status.LOADED);
 		}
@@ -194,10 +197,8 @@ class AudioController {
 					callback(-1);
 				}
 			});
-		} else {
-			console.log('this.player.getDuration()', this.player.getDuration())
-			if (this.player.getDuration() > 0)
-				callback(this.player.getDuration());
+		} else if (this.player.getDuration() > 0) {
+			callback(this.player.getDuration());
 		}
 	}
 
@@ -206,28 +207,22 @@ class AudioController {
 		if (this.type === 'streaming') {
 			this.player.status((err, status) => {
 				if (!err) {
-					if (status === 'PLAYING') {
-						callback(true);
-					} else {
-						callback(false);
-					}
+					callback(status === 'PLAYING' ? true : false);
 				} else {
 					callback(false);
 				}
 			});
 		} else {
-			this.player.getCurrentTime((seconds, isPLaying) => {
-				callback(isPlaying);
-			});
+			this.player.getCurrentTime((seconds, isPLaying) => callback(isPlaying));
 		}
 	}
 
-	onAudioProgress(callback) {
+	onAudioProgress() {
 		//Atualizando currentTime na audioProps
 		this.currentTimeListener = setInterval(() => {
 			this.getCurrentTime(seconds => {
 				this.audioProps.currentTime = seconds;
-				callback(seconds);
+				this.currentAudioListener(seconds);
 			});
 		}, 1000);
 	}
