@@ -126,8 +126,8 @@ class AudioControls extends Component {
                             AudioController.seek(seconds);
                         }}
                         onValueChange={seconds => {
+                            AudioController.clearIntervalCurrentTimeListener();
                             this.setState({ currentTime: seconds });
-                            AudioController.seek(seconds);
                         }}
                     />
                     <Text numberOfLines={1} style={styles.timeLabel}>

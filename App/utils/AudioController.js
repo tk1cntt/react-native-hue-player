@@ -37,6 +37,17 @@ class AudioController {
 		this.subscription = DeviceEventEmitter.addListener('RNAudioStreamerStatusChanged', this.onStatusChanged.bind(this));
 	}
 
+	setCurrentTime(seconds) {
+		seconds = parseInt(seconds);
+		(this.type === 'streaming') ? this.player.seekToTime(seconds) : this.player.setCurrentTime(seconds);
+		this.pause();
+		this.play();
+	}
+
+	clearIntervalCurrentTimeListener() {
+		clearInterval(this.currentTimeListener);
+	}
+
 	load(currentAudio, callback) {
 		//console.log('this.playList', this.playlist);
 		//Apenas os dados do áudio atual são obrigatórios
