@@ -124,6 +124,7 @@ class AudioControls extends Component {
                         value={currentTime}
                         onSlidingComplete={seconds => {
                             AudioController.seek(seconds);
+                            AudioController.startIntervalCurrentTimeListener();
                         }}
                         onValueChange={seconds => {
                             AudioController.clearIntervalCurrentTimeListener();

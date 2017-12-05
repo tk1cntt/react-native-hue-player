@@ -44,6 +44,10 @@ class AudioController {
 		this.play();
 	}
 
+	startIntervalCurrentTimeListener() {
+		this.onAudioProgress();
+	}
+
 	clearIntervalCurrentTimeListener() {
 		clearInterval(this.currentTimeListener);
 	}
