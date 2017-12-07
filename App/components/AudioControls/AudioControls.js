@@ -12,7 +12,6 @@ import 'moment/locale/pt-br';
 import images from '../../config/images';
 import colors from '../../config/colors';
 import AudioController from '../../utils/AudioController';
-// import AudioManager from '../../utils/AudioManager';
 
 const moment = require('moment');
 
@@ -25,6 +24,7 @@ class AudioControls extends Component {
         this.state = {
             duration: 0,
             currentTime: 0,
+            currentSong: {},
             isReady: true,
             isPlaying: false
         };
@@ -32,11 +32,11 @@ class AudioControls extends Component {
 
     componentWillMount() {
         const { playlist, initialTrack } = this.props;
-        AudioController.init(playlist, initialTrack, this.onChangeStatus);
+        AudioController.init(playlist, initialTrack, this.onChangeStatus, this.updateCurrentTime);
     }
 
     onChangeStatus = (status) => {
-        // console.log('Status changed', status);
+        //console.log('Status changed', status);
         switch (status) {
             case AudioController.status.PLAYING:
                 this.setState({ isPlaying: true });
@@ -44,9 +44,19 @@ class AudioControls extends Component {
             case AudioController.status.PAUSED:
                 this.setState({ isPlaying: false });
                 break;
-            default:
+            case AudioController.status.LOADED:
+                AudioController.getDuration((seconds) => {
+                    this.setState({ duration: seconds });
+                });
+                this.setState({ currentSong: AudioController.audioProps });
                 break;
+            default:
+                return;
         }
+    }
+
+    updateCurrentTime = (seconds) => {
+        this.setState({ currentTime: seconds });
     }
 
     renderPlayerIcon() {
@@ -97,6 +107,7 @@ class AudioControls extends Component {
         const { currentTime, duration } = this.state;
         return (
             <View style={styles.container}>
+                <Image source={{ uri: this.state.currentSong.thumbnail }} style={styles.thumbnail} />
                 <View style={styles.playbackContainer}>
                     <Text numberOfLines={1} style={styles.timeLabel}>
                         {currentTime
@@ -112,11 +123,12 @@ class AudioControls extends Component {
                         thumbTintColor={colors.green}
                         value={currentTime}
                         onSlidingComplete={seconds => {
-                            // AudioManager.seek(seconds);
+                            AudioController.seek(seconds);
+                            AudioController.startIntervalCurrentTimeListener();
                         }}
                         onValueChange={seconds => {
+                            AudioController.clearIntervalCurrentTimeListener();
                             this.setState({ currentTime: seconds });
-                            // AudioManager.seek(seconds);
                         }}
                     />
                     <Text numberOfLines={1} style={styles.timeLabel}>
@@ -137,7 +149,12 @@ class AudioControls extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        width: "100%"
+        width: '100%',
+    },
+    thumbnail: {
+        width: '50%',
+        height: '50%',
+        alignSelf: 'center'
     },
     buttons: {
         alignItems: "center",
