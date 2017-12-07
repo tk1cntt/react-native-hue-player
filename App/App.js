@@ -40,27 +40,10 @@ const playlist = [
 ];
 
 export default class App extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      isPlaying: false
-    };
-  }
-
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit App.js
-        </Text>
-        <AudioControls
-          initialTrack={0}
-          playlist={playlist}
-        />
+        <AudioControls initialTrack={0} playlist={playlist} />
       </View>
     );
   }
