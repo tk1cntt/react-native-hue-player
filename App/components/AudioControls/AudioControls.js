@@ -24,7 +24,7 @@ class AudioControls extends Component {
         this.state = {
             duration: 0,
             currentTime: 0,
-            currentSong: {},
+            currentAudio: {},
             isReady: true,
             isPlaying: false
         };
@@ -36,7 +36,6 @@ class AudioControls extends Component {
     }
 
     onChangeStatus = (status) => {
-        //console.log('Status changed', status);
         switch (status) {
             case AudioController.status.PLAYING:
                 this.setState({ isPlaying: true });
@@ -44,11 +43,17 @@ class AudioControls extends Component {
             case AudioController.status.PAUSED:
                 this.setState({ isPlaying: false });
                 break;
+            case AudioController.status.STOPPED:
+                this.setState({ isPlaying: false });
+                break;
             case AudioController.status.LOADED:
                 AudioController.getDuration((seconds) => {
                     this.setState({ duration: seconds });
                 });
-                this.setState({ currentSong: AudioController.audioProps });
+                this.setState({ currentAudio: AudioController.currentAudio });
+                break;
+            case AudioController.status.ERROR:
+                console.log('Status Error');
                 break;
             default:
                 return;
@@ -63,22 +68,26 @@ class AudioControls extends Component {
         const { isPlaying } = this.state;
         return (
             <TouchableOpacity
-                onPress={() => (isPlaying) ? AudioController.pause() : AudioController.play()}
+                onPress={
+                    () => (isPlaying) ? AudioController.pause() : AudioController.play()
+                }
             >
                 <Image
                     source={(isPlaying) ? images.iconPause : images.iconPlay}
                     style={styles.playButton}
                 />
-            </TouchableOpacity>
+            </TouchableOpacity >
         );
     }
 
     renderNextIcon() {
         if (AudioController.hasNext()) {
             return (
-                <TouchableOpacity onPress={() => {
-                    AudioController.playNext();
-                }} >
+                <TouchableOpacity
+                    onPress={() => {
+                        AudioController.playNext();
+                    }}
+                >
                     <Image source={images.iconNext} style={styles.nextButton} />
                 </TouchableOpacity>
             );
@@ -91,15 +100,20 @@ class AudioControls extends Component {
     renderPreviousIcon() {
         if (AudioController.hasPrevious()) {
             return (
-                <TouchableOpacity onPress={() => {
-                    AudioController.playPrevious();
-                }} >
+                <TouchableOpacity
+                    onPress={() => {
+                        AudioController.playPrevious();
+                    }}
+                >
                     <Image source={images.iconPrevious} style={styles.previousButton} />
                 </TouchableOpacity>
             );
         }
         return (
-            <Image source={images.iconPrevious} style={[styles.previousButton, { tintColor: '#888' }]} />
+            <Image
+                source={images.iconPrevious}
+                style={[styles.previousButton, { tintColor: '#888' }]}
+            />
         );
     }
 
@@ -107,34 +121,35 @@ class AudioControls extends Component {
         const { currentTime, duration } = this.state;
         return (
             <View style={styles.container}>
-                <Image source={{ uri: this.state.currentSong.thumbnail }} style={styles.thumbnail} />
+                <Image
+                    source={{ uri: this.state.currentAudio.thumbnail }}
+                    style={styles.thumbnail}
+                />
                 <View style={styles.playbackContainer}>
                     <Text numberOfLines={1} style={styles.timeLabel}>
                         {currentTime
-                            ? moment(currentTime * 1000).format("mm:ss")
-                            : "00:00"}
+                            ? moment(currentTime * 1000).format('mm:ss')
+                            : '00:00'}
                     </Text>
                     <Slider
                         value={currentTime}
-                        maximumValue={duration ? duration : 1}
+                        maximumValue={duration}
+
                         style={styles.playbackBar}
+
                         minimumTrackTintColor={colors.darkGrey}
+
                         maximumTrackTintColor={colors.green}
                         thumbTintColor={colors.green}
-                        value={currentTime}
+
                         onSlidingComplete={seconds => {
                             AudioController.seek(seconds);
-                            AudioController.startIntervalCurrentTimeListener();
+                            if (seconds < duration) AudioController.play();
                         }}
-                        onValueChange={seconds => {
-                            AudioController.clearIntervalCurrentTimeListener();
-                            this.setState({ currentTime: seconds });
-                        }}
+                        onValueChange={() => AudioController.clearCurrentTimeListener()}
                     />
                     <Text numberOfLines={1} style={styles.timeLabel}>
-                        {duration
-                            ? moment(duration * 1000).format("mm:ss")
-                            : "00:00"}
+                        {duration ? moment(duration * 1000).format('mm:ss') : '00:00'}
                     </Text>
                 </View>
                 <View style={styles.buttons}>
@@ -157,7 +172,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center'
     },
     buttons: {
-        alignItems: "center",
+        alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
         width: '100%'
@@ -177,9 +192,9 @@ const styles = StyleSheet.create({
         marginHorizontal: 20
     },
     playbackContainer: {
-        width: "100%",
-        flexDirection: "row",
-        alignItems: "center"
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center'
     },
     timeLabel: {
         paddingHorizontal: 2
