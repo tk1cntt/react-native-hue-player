@@ -1,9 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
 import React, { Component } from 'react';
 import {
   StyleSheet,
@@ -13,7 +7,6 @@ import {
 import AudioControls from './components/AudioControls';
 
 const playlist = [
-  // key*, title*, url*, author, thumbnail, path, currentTime, duration
   {
     key: 'audio1',
     title: 'Hino do Brasil',
@@ -28,14 +21,6 @@ const playlist = [
     url: '',
     path: 'audio1.mp3',
     thumbnail: 'https://lh3.googleusercontent.com/-SE7FQ1XW4ng/WTSYWArxKoI/AAAAAAAAA84/dan-oI2dryohk6fjm7NPShG5QAy03H17QCLcB/s600/Sweet-Dreams---%2528SENHOR-SIDER-FUNK-REMIX%2529-capa.jpg1200x630bb.jpg'
-  },
-  {
-    key: 'audio3',
-    title: 'Áudio 03 - Podcast 03',
-    author: 'Cláudio Henrique',
-    url: 'https://s3-sa-east-1.amazonaws.com/claudio-henrique/podcasts/POD_1.mp3',
-    path: 'audio2.mp3',
-    thumbnail: 'https://firebasestorage.googleapis.com/v0/b/claudio-henrique.appspot.com/o/podcasts%2Fcovers%2Fpodcast-cover2.png?alt=media&token=005cb0e0-81ac-4449-83c7-0aef092140ea'
   }
 ];
 
@@ -46,6 +31,25 @@ export default class App extends Component {
         <AudioControls
           initialTrack={0}
           playlist={playlist}
+
+          //Thumbnail
+          thumbnailSize={{ width: 200, height: 200 }}
+
+          //Buttons
+          activeButtonColor={'white'}
+          inactiveButtonColor={'#888'}
+
+          //Slider
+          sliderMinimumTrackTintColor={'#888'}
+          sliderMaximumTrackTintColor={'white'}
+          sliderThumbTintColor={'white'}
+          sliderTimeStyle={{ fontSize: 18, color: 'white' }}
+
+          //Title and author
+          titleStyle={{ fontSize: 18, fontWeight: 'bold', color: 'white' }}
+          authorStyle={{ fontSize: 16, color: 'white' }}
+
+          hasButtonForForward
           timeForFoward={30}
         />
       </View>
@@ -58,7 +62,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+    backgroundColor: 'black',
   },
   welcome: {
     fontSize: 20,

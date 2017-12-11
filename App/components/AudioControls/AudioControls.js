@@ -18,6 +18,42 @@ import AudioController from '../../utils/AudioController';
 const { width } = Dimensions.get('window');
 
 class AudioControls extends Component {
+    static defaultProps = {
+        ...Component.defaultProps,
+
+        //COLORS
+        activeColor: colors.green,
+        inactiveColor: '#888',
+
+        //FORWARD
+        hasButtonForForward: false,
+        timeForFoward: 15,
+
+        //THUMBNAIL
+        thumbnailSize: {
+            width: width * 0.6,
+            height: width * 0.6
+        },
+
+        //SOUND
+        titleStyle: {
+            fontSize: 16
+        },
+        authorStyle: {
+            fontSize: 14
+        },
+
+        //BUTTONS
+        activeButtonColor: this.activeColor,
+        inactiveButtonColor: this.inactiveColor,
+
+        //SLIDER
+        sliderMinimumTrackTintColor: this.activeColor,
+        sliderMaximumTrackTintColor: this.activeColor,
+        sliderThumbTintColor: this.activeColor,
+        sliderTimeStyle: { fontSize: 18 }
+    }
+
     constructor(props) {
         super(props);
 
@@ -73,7 +109,7 @@ class AudioControls extends Component {
                 >
                     <Image
                         source={images.iconPause}
-                        style={styles.playButton}
+                        style={[styles.playButton, { tintColor: this.props.activeButtonColor }]}
                     />
                 </TouchableOpacity >
             );
@@ -85,7 +121,7 @@ class AudioControls extends Component {
             >
                 <Image
                     source={images.iconPlay}
-                    style={styles.playButton}
+                    style={[styles.playButton, { tintColor: this.props.activeButtonColor }]}
                 />
             </TouchableOpacity >
         );
@@ -94,39 +130,43 @@ class AudioControls extends Component {
     renderNextIcon() {
         if (AudioController.hasNext()) {
             return (
-                <TouchableOpacity
-                    onPress={() => AudioController.playNext()}
-                >
-                    <Image source={images.iconNext} style={styles.nextButton} />
+                <TouchableOpacity onPress={() => AudioController.playNext()}>
+                    <Image
+                        source={images.iconNext}
+                        style={[styles.controlButton, { tintColor: this.props.activeButtonColor }]}
+                    />
                 </TouchableOpacity>
             );
         }
         return (
-            <Image source={images.iconNext} style={[styles.nextButton, { tintColor: '#888' }]} />
+            <Image
+                source={images.iconNext}
+                style={[styles.controlButton, { tintColor: this.props.inactiveButtonColor }]}
+            />
         );
     }
 
     renderPreviousIcon() {
         if (AudioController.hasPrevious()) {
             return (
-                <TouchableOpacity
-                    onPress={() => {
-                        AudioController.playPrevious();
-                    }}
-                >
-                    <Image source={images.iconPrevious} style={styles.previousButton} />
+                <TouchableOpacity onPress={() => AudioController.playPrevious()}>
+                    <Image
+                        source={images.iconPrevious}
+                        style={[styles.controlButton, { tintColor: this.props.activeButtonColor }]}
+                    />
                 </TouchableOpacity>
             );
         }
         return (
             <Image
                 source={images.iconPrevious}
-                style={[styles.previousButton, { tintColor: '#888' }]}
+                style={[styles.controlButton, { tintColor: this.props.inactiveButtonColor }]}
             />
         );
     }
 
     renderSkipbackwardIcon() {
+        if (!this.props.hasButtonForForward) return;
         return (
             <TouchableOpacity
                 onPress={() => {
@@ -135,13 +175,14 @@ class AudioControls extends Component {
             >
                 <Image
                     source={images.skipBackward}
-                    style={styles.skipBackwardButton}
+                    style={[styles.controlButton, { tintColor: this.props.activeButtonColor }]}
                 />
             </TouchableOpacity>
         );
     }
 
     renderSkipforwardIcon() {
+        if (!this.props.hasButtonForForward) return;
         return (
             <TouchableOpacity
                 onPress={() => {
@@ -150,27 +191,26 @@ class AudioControls extends Component {
             >
                 <Image
                     source={images.skipForward}
-                    style={styles.skipForwardButton}
+                    style={[styles.controlButton, { tintColor: this.props.activeButtonColor }]}
                 />
             </TouchableOpacity>
         );
     }
 
     render() {
+        console.log(this);
         const { currentTime, duration } = this.state;
         return (
             <View style={styles.container}>
                 <Image
                     source={{ uri: this.state.currentAudio.thumbnail }}
-                    style={styles.thumbnail}
+                    style={this.props.thumbnailSize}
                 />
-                <Text style={styles.title}>{this.state.currentAudio.title}</Text>
-                <Text style={styles.author}>{this.state.currentAudio.author}</Text>
+                <Text style={this.props.titleStyle}>{this.state.currentAudio.title}</Text>
+                <Text style={this.props.authorStyle}>{this.state.currentAudio.author}</Text>
                 <View style={styles.playbackContainer}>
-                    <Text numberOfLines={1} style={styles.timeLabel}>
-                        {currentTime
-                            ? moment(currentTime * 1000).format('mm:ss')
-                            : '00:00'}
+                    <Text numberOfLines={1} style={this.props.sliderTimeStyle}>
+                        {currentTime ? moment(currentTime * 1000).format('mm:ss') : '00:00'}
                     </Text>
                     <Slider
                         value={currentTime}
@@ -178,10 +218,9 @@ class AudioControls extends Component {
 
                         style={styles.playbackBar}
 
-                        minimumTrackTintColor={colors.darkGrey}
-
-                        maximumTrackTintColor={colors.green}
-                        thumbTintColor={colors.green}
+                        minimumTrackTintColor={this.props.sliderMinimumTrackTintColor}
+                        maximumTrackTintColor={this.props.sliderMaximumTrackTintColor}
+                        thumbTintColor={this.props.sliderThumbTintColor}
 
                         onSlidingComplete={seconds => {
                             AudioController.seek(seconds);
@@ -189,7 +228,7 @@ class AudioControls extends Component {
                         }}
                         onValueChange={() => AudioController.clearCurrentTimeListener()}
                     />
-                    <Text numberOfLines={1} style={styles.timeLabel}>
+                    <Text numberOfLines={1} style={this.props.sliderTimeStyle}>
                         {duration ? moment(duration * 1000).format('mm:ss') : '00:00'}
                     </Text>
                 </View>
@@ -219,19 +258,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center'
     },
-    thumbnail: {
-        width: width * 0.6,
-        height: width * 0.6
-    },
-    title: {
-        fontSize: 16
-    },
-    author: {
-        fontSize: 14
-    },
-    timeLabel: {
-        paddingHorizontal: 2
-    },
     playbackBar: {
         width: '70%'
     },
@@ -239,24 +265,9 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80
     },
-    previousButton: {
+    controlButton: {
         width: 20,
         height: 20,
-        margin: 5
-    },
-    nextButton: {
-        width: 20,
-        height: 20,
-        margin: 5
-    },
-    skipBackwardButton: {
-        width: 25,
-        height: 25,
-        margin: 5
-    },
-    skipForwardButton: {
-        width: 25,
-        height: 25,
         margin: 5
     }
 });
