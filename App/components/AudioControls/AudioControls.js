@@ -5,17 +5,17 @@ import {
     Image,
     TouchableOpacity,
     Slider,
-    Text
+    Text,
+    Dimensions
 } from 'react-native';
+import moment from 'moment';
 import 'moment/locale/pt-br';
 
 import images from '../../config/images';
 import colors from '../../config/colors';
 import AudioController from '../../utils/AudioController';
 
-const moment = require('moment');
-
-moment.locale('pt-BR');
+const { width } = Dimensions.get('window');
 
 class AudioControls extends Component {
     constructor(props) {
@@ -66,14 +66,25 @@ class AudioControls extends Component {
 
     renderPlayerIcon() {
         const { isPlaying } = this.state;
+        if (isPlaying) {
+            return (
+                <TouchableOpacity
+                    onPress={() => AudioController.pause()}
+                >
+                    <Image
+                        source={images.iconPause}
+                        style={styles.playButton}
+                    />
+                </TouchableOpacity >
+            );
+        }
+
         return (
             <TouchableOpacity
-                onPress={
-                    () => (isPlaying) ? AudioController.pause() : AudioController.play()
-                }
+                onPress={() => AudioController.play()}
             >
                 <Image
-                    source={(isPlaying) ? images.iconPause : images.iconPlay}
+                    source={images.iconPlay}
                     style={styles.playButton}
                 />
             </TouchableOpacity >
@@ -84,9 +95,7 @@ class AudioControls extends Component {
         if (AudioController.hasNext()) {
             return (
                 <TouchableOpacity
-                    onPress={() => {
-                        AudioController.playNext();
-                    }}
+                    onPress={() => AudioController.playNext()}
                 >
                     <Image source={images.iconNext} style={styles.nextButton} />
                 </TouchableOpacity>
@@ -117,6 +126,36 @@ class AudioControls extends Component {
         );
     }
 
+    renderSkipbackwardIcon() {
+        return (
+            <TouchableOpacity
+                onPress={() => {
+                    AudioController.seekToForward(-this.props.timeForFoward);
+                }}
+            >
+                <Image
+                    source={images.skipBackward}
+                    style={styles.skipBackwardButton}
+                />
+            </TouchableOpacity>
+        );
+    }
+
+    renderSkipforwardIcon() {
+        return (
+            <TouchableOpacity
+                onPress={() => {
+                    AudioController.seekToForward(this.props.timeForFoward);
+                }}
+            >
+                <Image
+                    source={images.skipForward}
+                    style={styles.skipForwardButton}
+                />
+            </TouchableOpacity>
+        );
+    }
+
     render() {
         const { currentTime, duration } = this.state;
         return (
@@ -125,6 +164,8 @@ class AudioControls extends Component {
                     source={{ uri: this.state.currentAudio.thumbnail }}
                     style={styles.thumbnail}
                 />
+                <Text style={styles.title}>{this.state.currentAudio.title}</Text>
+                <Text style={styles.author}>{this.state.currentAudio.author}</Text>
                 <View style={styles.playbackContainer}>
                     <Text numberOfLines={1} style={styles.timeLabel}>
                         {currentTime
@@ -152,10 +193,12 @@ class AudioControls extends Component {
                         {duration ? moment(duration * 1000).format('mm:ss') : '00:00'}
                     </Text>
                 </View>
-                <View style={styles.buttons}>
+                <View style={styles.buttonsContainer}>
+                    {this.renderSkipbackwardIcon()}
                     {this.renderPreviousIcon()}
                     {this.renderPlayerIcon()}
                     {this.renderNextIcon()}
+                    {this.renderSkipforwardIcon()}
                 </View>
             </View>
         );
@@ -164,43 +207,57 @@ class AudioControls extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        width: '100%',
+        flex: 1,
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    playbackContainer: {
+        flexDirection: 'row'
+    },
+    buttonsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center'
     },
     thumbnail: {
-        width: '50%',
-        height: '50%',
-        alignSelf: 'center'
+        width: width * 0.6,
+        height: width * 0.6
     },
-    buttons: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-        width: '100%'
+    title: {
+        fontSize: 16
+    },
+    author: {
+        fontSize: 14
+    },
+    timeLabel: {
+        paddingHorizontal: 2
+    },
+    playbackBar: {
+        width: '70%'
     },
     playButton: {
         width: 80,
         height: 80
     },
     previousButton: {
-        width: 15,
-        height: 15,
-        marginHorizontal: 20
+        width: 20,
+        height: 20,
+        margin: 5
     },
     nextButton: {
-        width: 15,
-        height: 15,
-        marginHorizontal: 20
+        width: 20,
+        height: 20,
+        margin: 5
     },
-    playbackContainer: {
-        width: '100%',
-        flexDirection: 'row',
-        alignItems: 'center'
+    skipBackwardButton: {
+        width: 25,
+        height: 25,
+        margin: 5
     },
-    timeLabel: {
-        paddingHorizontal: 2
-    },
-    playbackBar: {
-        flex: 6
+    skipForwardButton: {
+        width: 25,
+        height: 25,
+        margin: 5
     }
 });
 

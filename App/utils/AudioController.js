@@ -39,7 +39,7 @@ class AudioController {
 			STOPPED: 'STOPPED',
 			SEEKING: 'SEEKING',
 			ERROR: 'ERROR'
-		}
+		};
 	}
 
 	/**
@@ -101,8 +101,9 @@ class AudioController {
 				Sound.MAIN_BUNDLE,
 				(error) => {
 					if (error) return;
+
 					//Executa callback se existir
-					(isLoaded) ? isLoaded(() => this.player.isLoaded()) : false;
+					if (isLoaded) isLoaded(() => this.player.isLoaded());
 
 					//Atualiza a duração do áudio
 					this.getDuration(seconds => {
@@ -116,7 +117,8 @@ class AudioController {
 			this.player = RNAudioStreamer;
 			this.player.setUrl(this.currentAudio.url);
 
-			(isLoaded) ? isLoaded(true) : false;
+			//Executa callback se existir
+			if (isLoaded) isLoaded(true);
 		}
 
 		//Starta controle de áudio
@@ -190,13 +192,22 @@ class AudioController {
 			this.player.seekToTime(seconds);
 		} else {
 			this.player.setCurrentTime(seconds);
-		}			
+		}
 
 		//Atualiza tempo atual
 		this.currentAudio.currentTime = seconds;
 		this.currentAudioListener(seconds);
 		this.music_control_seek(seconds);
 		this.music_control_refresh();
+	}
+
+	seekToForward(seconds) {
+		if (this.playerIsNull()) return;
+
+		//Verifica se ao da forward chegou no final do áudio
+		if (this.currentAudio.currentTime + seconds >= parseInt(this.currentAudio.duration, 10)) return;
+
+		this.seek(this.currentAudio.currentTime + seconds);
 	}
 
 	skip(seconds) {
@@ -293,10 +304,9 @@ class AudioController {
 	}
 
 	setCurrentTime(seconds) {
-		seconds = parseInt(seconds);
-		(this.type === 'streaming') ?
-			this.player.seekToTime(seconds) :
-			this.player.setCurrentTime(seconds);
+		const secondsRound = parseInt(seconds, 10);
+		if (this.type === 'streaming') this.player.seekToTime(secondsRound);
+		else this.player.setCurrentTime(secondsRound);
 		this.pause();
 		this.play();
 	}
@@ -304,7 +314,7 @@ class AudioController {
 	getDuration(callback) {
 		if (this.playerIsNull()) return;
 
-		if (this.type == 'streaming') {
+		if (this.type === 'streaming') {
 			this.player.duration((err, seconds) => {
 				if (!err && seconds > 0) callback(seconds);
 				else callback(-1);
@@ -320,7 +330,7 @@ class AudioController {
 		if (this.type === 'streaming') {
 			this.player.status((err, status) => {
 				if (!err) {
-					callback(status === 'PLAYING' ? true : false);
+					callback(status === 'PLAYING');
 				} else {
 					callback(false);
 				}
