@@ -23,18 +23,19 @@ const playlist = [
   },
   {
     key: 'audio2',
-    title: 'Áudio 02 - Podcast 02',
-    author: 'Cláudio Henrique',
-    url: 'https://s3-sa-east-1.amazonaws.com/claudio-henrique/podcasts/POD_1.mp3',
-    path: 'audio2.mp3',
-    thumbnail: 'https://firebasestorage.googleapis.com/v0/b/claudio-henrique.appspot.com/o/podcasts%2Fcovers%2Fpodcast-cover2.png?alt=media&token=005cb0e0-81ac-4449-83c7-0aef092140ea'
+    title: 'Sweet Dreams - Eurythmics (Funk Remix)',
+    author: 'Senhor Sider',
+    url: '',
+    path: 'audio1.mp3',
+    thumbnail: 'https://lh3.googleusercontent.com/-SE7FQ1XW4ng/WTSYWArxKoI/AAAAAAAAA84/dan-oI2dryohk6fjm7NPShG5QAy03H17QCLcB/s600/Sweet-Dreams---%2528SENHOR-SIDER-FUNK-REMIX%2529-capa.jpg1200x630bb.jpg'
   },
   {
     key: 'audio3',
     title: 'Áudio 03 - Podcast 03',
     author: 'Cláudio Henrique',
     url: 'https://s3-sa-east-1.amazonaws.com/claudio-henrique/podcasts/POD_1.mp3',
-    thumbnail: 'https://firebasestorage.googleapis.com/v0/b/claudio-henrique.appspot.com/o/podcasts%2Fcovers%2Fpodcast-cover.png?alt=media&token=4a639782-4d3f-40fd-99ec-450efad2b681'
+    path: 'audio2.mp3',
+    thumbnail: 'https://firebasestorage.googleapis.com/v0/b/claudio-henrique.appspot.com/o/podcasts%2Fcovers%2Fpodcast-cover2.png?alt=media&token=005cb0e0-81ac-4449-83c7-0aef092140ea'
   }
 ];
 

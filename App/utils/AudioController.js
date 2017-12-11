@@ -90,6 +90,7 @@ class AudioController {
 	 * @param {*Function} isLoaded 
 	 */
 	load(audio, isLoaded) {
+		console.log('Load audio', audio);
 		this.currentAudio = audio;
 		//Verificar se o arquivo de áudio já foi baixado para definir player
 		if (this.currentAudio.path) {
@@ -97,9 +98,11 @@ class AudioController {
 			this.type = 'offline';
 
 			Sound.setCategory('Playback');
+			console.log('this.currentAudio.path', this.currentAudio.path);
 			this.player = new Sound(this.currentAudio.path,
 				Sound.MAIN_BUNDLE,
 				(error) => {
+					console.log('Error load audio offline', error);
 					if (error) return;
 
 					//Executa callback se existir
@@ -111,6 +114,7 @@ class AudioController {
 					});
 				}
 			);
+			console.log('this.player', this.player);
 		} else {
 			//Áudio online, this.player será instância do RNAudioStreamer
 			this.type = 'streaming';
@@ -140,8 +144,10 @@ class AudioController {
 
 		//Da play no áudio streaming ou local
 		if (this.type === 'streaming') {
+			console.log('Play streaming');
 			this.player.play();
 		} else {
+			console.log('Play local');
 			this.player.play(this.onAudioFinish.bind(this));
 		}
 
@@ -194,8 +200,12 @@ class AudioController {
 			this.player.setCurrentTime(seconds);
 		}
 
+		const newCurrentTime = (seconds >= 0) ? seconds : 0;
+
+		this.onChangeCurrentTime(newCurrentTime);
+
 		//Atualiza tempo atual
-		this.currentAudio.currentTime = seconds;
+		this.currentAudio.currentTime = newCurrentTime;
 		this.currentAudioListener(seconds);
 		this.music_control_seek(seconds);
 		this.music_control_refresh();
