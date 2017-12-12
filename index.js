@@ -1,4 +1,4 @@
-import { AppRegistry } from 'react-native';
-import App from './App';
+import AudioController from './AudioController';
+import AudioControls from './AudioControls';
 
-AppRegistry.registerComponent('musicPlayer', () => App);
+export { AudioController, AudioControls };
