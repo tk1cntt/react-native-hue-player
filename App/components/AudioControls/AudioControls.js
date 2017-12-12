@@ -5,26 +5,62 @@ import {
     Image,
     TouchableOpacity,
     Slider,
-    Text
+    Text,
+    Dimensions
 } from 'react-native';
+import moment from 'moment';
 import 'moment/locale/pt-br';
 
 import images from '../../config/images';
 import colors from '../../config/colors';
 import AudioController from '../../utils/AudioController';
 
-const moment = require('moment');
-
-moment.locale('pt-BR');
+const { width } = Dimensions.get('window');
 
 class AudioControls extends Component {
+    static defaultProps = {
+        ...Component.defaultProps,
+
+        //COLORS
+        activeColor: colors.green,
+        inactiveColor: '#888',
+
+        //FORWARD
+        hasButtonForForward: false,
+        timeForFoward: 15,
+
+        //THUMBNAIL
+        thumbnailSize: {
+            width: width * 0.6,
+            height: width * 0.6
+        },
+
+        //SOUND
+        titleStyle: {
+            fontSize: 16
+        },
+        authorStyle: {
+            fontSize: 14
+        },
+
+        //BUTTONS
+        activeButtonColor: this.activeColor,
+        inactiveButtonColor: this.inactiveColor,
+
+        //SLIDER
+        sliderMinimumTrackTintColor: this.activeColor,
+        sliderMaximumTrackTintColor: this.activeColor,
+        sliderThumbTintColor: this.activeColor,
+        sliderTimeStyle: { fontSize: 18 }
+    }
+
     constructor(props) {
         super(props);
 
         this.state = {
             duration: 0,
             currentTime: 0,
-            currentSong: {},
+            currentAudio: {},
             isReady: true,
             isPlaying: false
         };
@@ -36,7 +72,6 @@ class AudioControls extends Component {
     }
 
     onChangeStatus = (status) => {
-        //console.log('Status changed', status);
         switch (status) {
             case AudioController.status.PLAYING:
                 this.setState({ isPlaying: true });
@@ -44,11 +79,17 @@ class AudioControls extends Component {
             case AudioController.status.PAUSED:
                 this.setState({ isPlaying: false });
                 break;
+            case AudioController.status.STOPPED:
+                this.setState({ isPlaying: false });
+                break;
             case AudioController.status.LOADED:
                 AudioController.getDuration((seconds) => {
                     this.setState({ duration: seconds });
                 });
-                this.setState({ currentSong: AudioController.audioProps });
+                this.setState({ currentAudio: AudioController.currentAudio });
+                break;
+            case AudioController.status.ERROR:
+                console.log('Status Error');
                 break;
             default:
                 return;
@@ -61,45 +102,98 @@ class AudioControls extends Component {
 
     renderPlayerIcon() {
         const { isPlaying } = this.state;
+        if (isPlaying) {
+            return (
+                <TouchableOpacity
+                    onPress={() => AudioController.pause()}
+                >
+                    <Image
+                        source={images.iconPause}
+                        style={[styles.playButton, { tintColor: this.props.activeButtonColor }]}
+                    />
+                </TouchableOpacity >
+            );
+        }
+
         return (
             <TouchableOpacity
-                onPress={() => (isPlaying) ? AudioController.pause() : AudioController.play()}
+                onPress={() => AudioController.play()}
             >
                 <Image
-                    source={(isPlaying) ? images.iconPause : images.iconPlay}
-                    style={styles.playButton}
+                    source={images.iconPlay}
+                    style={[styles.playButton, { tintColor: this.props.activeButtonColor }]}
                 />
-            </TouchableOpacity>
+            </TouchableOpacity >
         );
     }
 
     renderNextIcon() {
         if (AudioController.hasNext()) {
             return (
-                <TouchableOpacity onPress={() => {
-                    AudioController.playNext();
-                }} >
-                    <Image source={images.iconNext} style={styles.nextButton} />
+                <TouchableOpacity onPress={() => AudioController.playNext()}>
+                    <Image
+                        source={images.iconNext}
+                        style={[styles.controlButton, { tintColor: this.props.activeButtonColor }]}
+                    />
                 </TouchableOpacity>
             );
         }
         return (
-            <Image source={images.iconNext} style={[styles.nextButton, { tintColor: '#888' }]} />
+            <Image
+                source={images.iconNext}
+                style={[styles.controlButton, { tintColor: this.props.inactiveButtonColor }]}
+            />
         );
     }
 
     renderPreviousIcon() {
         if (AudioController.hasPrevious()) {
             return (
-                <TouchableOpacity onPress={() => {
-                    AudioController.playPrevious();
-                }} >
-                    <Image source={images.iconPrevious} style={styles.previousButton} />
+                <TouchableOpacity onPress={() => AudioController.playPrevious()}>
+                    <Image
+                        source={images.iconPrevious}
+                        style={[styles.controlButton, { tintColor: this.props.activeButtonColor }]}
+                    />
                 </TouchableOpacity>
             );
         }
         return (
-            <Image source={images.iconPrevious} style={[styles.previousButton, { tintColor: '#888' }]} />
+            <Image
+                source={images.iconPrevious}
+                style={[styles.controlButton, { tintColor: this.props.inactiveButtonColor }]}
+            />
+        );
+    }
+
+    renderSkipbackwardIcon() {
+        if (!this.props.hasButtonForForward) return;
+        return (
+            <TouchableOpacity
+                onPress={() => {
+                    AudioController.seekToForward(-this.props.timeForFoward);
+                }}
+            >
+                <Image
+                    source={images.skipBackward}
+                    style={[styles.controlButton, { tintColor: this.props.activeButtonColor }]}
+                />
+            </TouchableOpacity>
+        );
+    }
+
+    renderSkipforwardIcon() {
+        if (!this.props.hasButtonForForward) return;
+        return (
+            <TouchableOpacity
+                onPress={() => {
+                    AudioController.seekToForward(this.props.timeForFoward);
+                }}
+            >
+                <Image
+                    source={images.skipForward}
+                    style={[styles.controlButton, { tintColor: this.props.activeButtonColor }]}
+                />
+            </TouchableOpacity>
         );
     }
 
@@ -107,40 +201,42 @@ class AudioControls extends Component {
         const { currentTime, duration } = this.state;
         return (
             <View style={styles.container}>
-                <Image source={{ uri: this.state.currentSong.thumbnail }} style={styles.thumbnail} />
+                <Image
+                    source={{ uri: this.state.currentAudio.thumbnail }}
+                    style={this.props.thumbnailSize}
+                />
+                <Text style={this.props.titleStyle}>{this.state.currentAudio.title}</Text>
+                <Text style={this.props.authorStyle}>{this.state.currentAudio.author}</Text>
                 <View style={styles.playbackContainer}>
-                    <Text numberOfLines={1} style={styles.timeLabel}>
-                        {currentTime
-                            ? moment(currentTime * 1000).format("mm:ss")
-                            : "00:00"}
+                    <Text numberOfLines={1} style={this.props.sliderTimeStyle}>
+                        {currentTime ? moment(currentTime * 1000).format('mm:ss') : '00:00'}
                     </Text>
                     <Slider
                         value={currentTime}
-                        maximumValue={duration ? duration : 1}
+                        maximumValue={duration}
+
                         style={styles.playbackBar}
-                        minimumTrackTintColor={colors.darkGrey}
-                        maximumTrackTintColor={colors.green}
-                        thumbTintColor={colors.green}
-                        value={currentTime}
+
+                        minimumTrackTintColor={this.props.sliderMinimumTrackTintColor}
+                        maximumTrackTintColor={this.props.sliderMaximumTrackTintColor}
+                        thumbTintColor={this.props.sliderThumbTintColor}
+
                         onSlidingComplete={seconds => {
                             AudioController.seek(seconds);
-                            AudioController.startIntervalCurrentTimeListener();
+                            if (seconds < duration) AudioController.play();
                         }}
-                        onValueChange={seconds => {
-                            AudioController.clearIntervalCurrentTimeListener();
-                            this.setState({ currentTime: seconds });
-                        }}
+                        onValueChange={() => AudioController.clearCurrentTimeListener()}
                     />
-                    <Text numberOfLines={1} style={styles.timeLabel}>
-                        {duration
-                            ? moment(duration * 1000).format("mm:ss")
-                            : "00:00"}
+                    <Text numberOfLines={1} style={this.props.sliderTimeStyle}>
+                        {duration ? moment(duration * 1000).format('mm:ss') : '00:00'}
                     </Text>
                 </View>
-                <View style={styles.buttons}>
+                <View style={styles.buttonsContainer}>
+                    {this.renderSkipbackwardIcon()}
                     {this.renderPreviousIcon()}
                     {this.renderPlayerIcon()}
                     {this.renderNextIcon()}
+                    {this.renderSkipforwardIcon()}
                 </View>
             </View>
         );
@@ -149,43 +245,29 @@ class AudioControls extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        width: '100%',
+        flex: 1,
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
     },
-    thumbnail: {
-        width: '50%',
-        height: '50%',
-        alignSelf: 'center'
+    playbackContainer: {
+        flexDirection: 'row'
     },
-    buttons: {
-        alignItems: "center",
-        justifyContent: 'center',
+    buttonsContainer: {
         flexDirection: 'row',
-        width: '100%'
+        alignItems: 'center'
+    },
+    playbackBar: {
+        width: '70%'
     },
     playButton: {
         width: 80,
         height: 80
     },
-    previousButton: {
-        width: 15,
-        height: 15,
-        marginHorizontal: 20
-    },
-    nextButton: {
-        width: 15,
-        height: 15,
-        marginHorizontal: 20
-    },
-    playbackContainer: {
-        width: "100%",
-        flexDirection: "row",
-        alignItems: "center"
-    },
-    timeLabel: {
-        paddingHorizontal: 2
-    },
-    playbackBar: {
-        flex: 6
+    controlButton: {
+        width: 20,
+        height: 20,
+        margin: 5
     }
 });
 

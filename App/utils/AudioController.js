@@ -1,20 +1,36 @@
-import MusicControl from 'react-native-music-control';
 import Sound from 'react-native-sound';
 import RNAudioStreamer from 'react-native-audio-streamer';
-
 import { DeviceEventEmitter } from 'react-native';
+import MusicControl from 'react-native-music-control';
 
 class AudioController {
+	//Inicializa atributos
 	constructor() {
-		this.audioProps = {}; //Propriedades do áudio atual: key*, title*, url*, author, thumbnail, path, currentTime, duration        
-		this.player = null; //Instância do Sound ou do RNAudioStreamer
 		this.paused = true;
-		this.type = 'streaming';
 		this.playlist = [];
+
+		/**
+		 * Propriedades do áudio
+		 * (*) Requerido
+		 * key*, title*, url*, author, thumbnail, path, currentTime, duration
+		 */
+		this.currentAudio = {};
+		this.type = 'streaming';
+
+		//Instância do Sound ou do RNAudioStreamer
+		this.player = null;
+
+		//Indice do áudio atual
 		this.currentIndex = 0;
+
+		//Callbacks
 		this.currentAudioListener = () => null;
 		this.currentTimeListener = () => null;
-		this.onChange = () => null;
+
+		this.onChangeStatus = () => null;
+		this.onChangeCurrentTime = () => null;
+
+		//Status do áudio
 		this.status = {
 			PLAYING: 'PLAYING',
 			LOADING: 'LOADING',
@@ -23,115 +39,184 @@ class AudioController {
 			STOPPED: 'STOPPED',
 			SEEKING: 'SEEKING',
 			ERROR: 'ERROR'
+		};
+	}
+
+	/**
+	 * Carrega a playlist, track inicial, e seta callback
+	 * para mudança de estado do áudio e tempo atual do áudio
+	 * 
+	 * @param {*Array} playlist 
+	 * @param {*Int} track 
+	 * @param {*Function} onChangeStatus 
+	 * @param {*Function} onChangeCurrentTime 
+	 */
+	init(playlist, track = 0, onChangeStatus, onChangeCurrentTime) {
+		this.playlist = playlist;
+
+		//Seta áudio atual como a track que o usuário passou
+		this.currentAudio = playlist[track];
+		this.currentIndex = track;
+
+		//Seta listeners de mudança de estado e mudança de tempo atual do som
+		this.onChangeStatus = onChangeStatus;
+		this.onChangeCurrentTime = onChangeCurrentTime;
+
+		this.onChangeStatus(this.status.LOADING);
+
+		//Carrega o primeiro áudio
+		this.load(this.currentAudio, (isLoaded) => isLoaded ?
+			this.onChangeStatus(this.status.LOADED) : this.onChangeStatus(this.status.ERROR));
+
+		//Adiciona listener para monitorar o estado do player de áudio streaming
+		this.subscription = DeviceEventEmitter
+			.addListener('RNAudioStreamerStatusChanged', this.onStatusChanged.bind(this));
+	}
+
+	onStatusChanged(status) {
+		if (status === 'PAUSED' || status === 'PLAYING') {
+			//Atualiza a duração do áudio streaming após mudança de estado
+			this.getDuration(seconds => {
+				this.currentAudio.duration = seconds;
+			});
+			this.onChangeStatus(this.status.LOADED);
 		}
 	}
 
-	init(playlist, track = 0, callback, currentAudioListener) {
-		this.playlist = playlist;
-		this.currentIndex = track;
-		this.audioProps = playlist[track];
-		this.currentAudioListener = currentAudioListener;
-		this.setOnChange(callback);
-		this.onChange(this.status.LOADING);
-		this.load(this.audioProps, (isLoaded) => isLoaded ? this.onChange(this.status.LOADED) : null);
-		this.subscription = DeviceEventEmitter.addListener('RNAudioStreamerStatusChanged', this.onStatusChanged.bind(this));
-	}
-
-	setCurrentTime(seconds) {
-		seconds = parseInt(seconds);
-		(this.type === 'streaming') ? this.player.seekToTime(seconds) : this.player.setCurrentTime(seconds);
-		this.pause();
-		this.play();
-	}
-
-	startIntervalCurrentTimeListener() {
-		this.onAudioProgress();
-	}
-
-	clearIntervalCurrentTimeListener() {
-		clearInterval(this.currentTimeListener);
-	}
-
-	load(currentAudio, callback) {
-		//console.log('this.playList', this.playlist);
-		//Apenas os dados do áudio atual são obrigatórios
-		this.audioProps = currentAudio;
+	/**
+	 * Carrega áudio e executa uma callback dizendo se foi carregado ou não
+	 * 
+	 * @param {*Object} audio 
+	 * @param {*Function} isLoaded 
+	 */
+	load(audio, isLoaded) {
+		this.currentAudio = audio;
 		//Verificar se o arquivo de áudio já foi baixado para definir player
-		if (this.audioProps.path) {
+		if (this.currentAudio.path) {
 			//Áudio offline, this.player será instância do Sound
 			this.type = 'offline';
+
 			Sound.setCategory('Playback');
-			this.player = new Sound(this.audioProps.path, Sound.MAIN_BUNDLE, (error) => {
-				if (error) return;
+			this.player = new Sound(this.currentAudio.path,
+				Sound.MAIN_BUNDLE,
+				(error) => {
+					if (error) return;
 
-				(callback) ? callback(() => this.player.isLoaded()) : null;
-			});
+					//Executa callback se existir
+					if (isLoaded) isLoaded(() => this.player.isLoaded());
 
+					//Atualiza a duração do áudio
+					this.getDuration(seconds => {
+						this.currentAudio.duration = seconds;
+					});
+				}
+			);
 		} else {
 			//Áudio online, this.player será instância do RNAudioStreamer
 			this.type = 'streaming';
 			this.player = RNAudioStreamer;
-			this.player.setUrl(this.audioProps.url);
-			(callback) ? callback(true) : null;
+			this.player.setUrl(this.currentAudio.url);
+
+			//Executa callback se existir
+			if (isLoaded) isLoaded(true);
 		}
 
-		//console.log(`Loading audio ${this.type}`, this.player, this.audioProps);
-
+		//Starta controle de áudio
 		this.startMusicControl();
+	}
 
-		//Atualiza a duração do áudio
-		this.getDuration(seconds => {
-			this.audioProps.duration = seconds;
-		});
+	//------------ Funções básicas do player ------------//
+
+	playerIsNull() {
+		if (this.player == null) {
+			this.onChangeStatus(this.status.ERROR);
+			return true;
+		}
+		return false;
 	}
 
 	play() {
-		//console.log('AudioController.play()', this.player);
+		if (this.playerIsNull()) return;
 
-		if (this.player == null) return;
+		//Da play no áudio streaming ou local
+		if (this.type === 'streaming') {
+			this.player.play();
+		} else {
+			this.player.play(this.onAudioFinish.bind(this));
+		}
 
-		//Aqui deve ser implementada uma chamada para a função play, independente da biblioteca
-		(this.type === 'streaming') ? this.player.play() : this.player.play(this.onAudioFinish.bind(this));
-
-		this.onAudioProgress();
+		//Starta função que executa callback de tempo atual do som
+		this.onAudioProgressTime();
 
 		//Configura Player e Music Control para iniciar de onde o usuário parou
-		if (typeof this.audioProps.currentTime !== 'undefined' && this.audioProps.currentTime >= 0) {
-			this.seek(this.audioProps.currentTime);
-		} else {
-			console.log('Não tem currentTime', this.audioProps);
+		if (typeof this.currentAudio.currentTime !== 'undefined' &&
+			this.currentAudio.currentTime >= 0) {
+			this.seek(this.currentAudio.currentTime);
 		}
 
 		this.paused = false;
-		this.onChange(this.status.PLAYING);
+		this.onChangeStatus(this.status.PLAYING);
 		this.music_control_play();
 	}
 
 	pause() {
-		if (this.player == null) return;
+		if (this.playerIsNull()) return;
+
 		this.player.pause();
-		this.audioProps.currentTime = parseInt(this.audioProps.currentTime);
-		clearInterval(this.currentTimeListener);
+
+		//Salva o tempo atual do áudio
+		this.currentAudio.currentTime = parseInt(this.currentAudio.currentTime, 10);
+
+		//Para o listener de current time
+		this.clearCurrentTimeListener();
 		this.paused = true;
-		this.onChange(this.status.PAUSED);
+		this.onChangeStatus(this.status.PAUSED);
 		this.music_control_pause();
 	}
 
 	seek(seconds) {
-		seconds = parseInt(seconds);
-		if (this.player == null) return;
+		if (this.playerIsNull()) return;
+		//Se deu seek para final do áudio, para ele e coloca current time 0
+		if (parseInt(seconds, 10) >= parseInt(this.currentAudio.duration, 10)) {
+			this.clearCurrentTimeListener();
+			this.player.pause();
+			this.paused = true;
+			this.music_control_pause();
+			this.currentAudio.currentTime = 0;
+			this.onChangeStatus(this.status.STOPPED);
+			return;
+		}
+
 		//Aqui deve ser implementada uma chamada para a função seek, independente da biblioteca
-		//console.log('seek To ', seconds, this.player);
-		(this.type === 'streaming') ? this.player.seekToTime(seconds) : this.player.setCurrentTime(seconds);
+		if (this.type === 'streaming') {
+			this.player.seekToTime(seconds);
+		} else {
+			this.player.setCurrentTime(seconds);
+		}
+
+		const newCurrentTime = (seconds >= 0) ? seconds : 0;
+
+		this.onChangeCurrentTime(newCurrentTime);
+
 		//Atualiza tempo atual
-		this.audioProps.currentTime = seconds;
+		this.currentAudio.currentTime = newCurrentTime;
 		this.currentAudioListener(seconds);
 		this.music_control_seek(seconds);
 		this.music_control_refresh();
 	}
 
+	seekToForward(seconds) {
+		if (this.playerIsNull()) return;
+
+		//Verifica se ao da forward chegou no final do áudio
+		if (this.currentAudio.currentTime + seconds >= parseInt(this.currentAudio.duration, 10)) return;
+
+		this.seek(this.currentAudio.currentTime + seconds);
+	}
+
 	skip(seconds) {
-		if (this.player == null) return;
+		if (this.playerIsNull()) return;
+
 		//Aqui deve ser implementada uma chamada para a função skip, independente da biblioteca	
 		this.getDuration(duration => {
 			this.getCurrentTime(currentTime => {
@@ -144,15 +229,15 @@ class AudioController {
 	}
 
 	hasTrack(index) {
-		return this.playlist[index] ? true : false;
+		return this.playlist[index] !== undefined;
 	}
 
 	hasNext() {
-		return this.playlist[this.currentIndex + 1] ? true : false;
+		return this.playlist[this.currentIndex + 1] !== undefined;
 	}
 
 	hasPrevious() {
-		return this.playlist[this.currentIndex - 1] ? true : false;
+		return this.playlist[this.currentIndex - 1] !== undefined;
 	}
 
 	playNext() {
@@ -174,58 +259,82 @@ class AudioController {
 		this.load(this.selectedAudio, (isLoaded) => {
 			this.play();
 			if (isLoaded) {
-				if (this.type !== 'streaming') this.onChange(this.status.LOADED);
+				if (this.type !== 'streaming') this.onChangeStatus(this.status.LOADED);
 			} else return null;
 		});
 	}
 
-	setOnChange(callback) {
-		this.onChange = callback;
+	//------------ Callbacks ------------//	
+
+	//Inicializa o current time listener
+	onAudioProgressTime() {
+		//Atualizando currentTime na audioProps
+		this.currentTimeListener = setInterval(() => {
+			this.getCurrentTime(seconds => {
+				if (this.currentAudio.duration > 0 && seconds > this.currentAudio.duration) {
+					this.player.pause();
+					this.onChangeStatus(this.status.STOPPED);
+					this.currentAudio.currentTime = 0;
+					this.clearCurrentTimeListener();
+				} else {
+					this.currentAudio.currentTime = seconds;
+					this.onChangeCurrentTime(seconds);
+				}
+			});
+		}, 1000);
 	}
 
-	getAudioProps() {
-		return this.audioProps;
+	//Starta listener do current time
+	startCurrentTimeListener() {
+		this.onAudioProgressTime();
 	}
 
+	//Para listener do current time
+	clearCurrentTimeListener() {
+		clearInterval(this.currentTimeListener);
+	}
+
+	//Retorna tempo atual do áudio
 	getCurrentTime(callback) {
-		if (this.player == null) return;
-		if (this.type == 'streaming')
+		if (this.playerIsNull()) return;
+
+		if (this.type === 'streaming') {
 			this.player.currentTime((err, seconds) => {
 				if (!err) callback(seconds);
 			});
-		else {
+		} else {
 			this.player.getCurrentTime(callback);
 		}
 	}
 
-	onStatusChanged(status) {
-		//console.log('Streamer status', status);
-		if (status === 'PAUSED' || status === 'PLAYING') {
-			this.onChange(this.status.LOADED);
-		}
+	setCurrentTime(seconds) {
+		const secondsRound = parseInt(seconds, 10);
+		if (this.type === 'streaming') this.player.seekToTime(secondsRound);
+		else this.player.setCurrentTime(secondsRound);
+		this.pause();
+		this.play();
 	}
 
 	getDuration(callback) {
-		if (this.player == null) return;
-		if (this.type == 'streaming') {
+		if (this.playerIsNull()) return;
+
+		if (this.type === 'streaming') {
 			this.player.duration((err, seconds) => {
-				if (!err && seconds > 0)
-					callback(seconds);
-				else {
-					callback(-1);
-				}
+				if (!err && seconds > 0) callback(seconds);
+				else callback(-1);
 			});
 		} else if (this.player.getDuration() > 0) {
 			callback(this.player.getDuration());
 		}
 	}
 
+	//ESTÁ EM USO?
 	isPlaying(callback) {
 		if (this.player == null) return;
 		if (this.type === 'streaming') {
 			this.player.status((err, status) => {
 				if (!err) {
-					callback(status === 'PLAYING' ? true : false);
+					callback(status === 'PLAYING');
 				} else {
 					callback(false);
 				}
@@ -233,16 +342,6 @@ class AudioController {
 		} else {
 			this.player.getCurrentTime((seconds, isPLaying) => callback(isPlaying));
 		}
-	}
-
-	onAudioProgress() {
-		//Atualizando currentTime na audioProps
-		this.currentTimeListener = setInterval(() => {
-			this.getCurrentTime(seconds => {
-				this.audioProps.currentTime = seconds;
-				this.currentAudioListener(seconds);
-			});
-		}, 1000);
 	}
 
 	onAudioFinish() {
@@ -263,10 +362,10 @@ class AudioController {
 		this.getDuration((duration) => {
 			this.initializeMusicControlEvents();
 			MusicControl.setNowPlaying({
-				title: this.audioProps.title, //OK
-				artwork: this.audioProps.thumbnail, //OK
-				artist: this.audioProps.author, //OK
-				album: this.audioProps.author ? this.audioProps.author : '',
+				title: this.currentAudio.title, //OK
+				artwork: this.currentAudio.thumbnail, //OK
+				artist: this.currentAudio.author, //OK
+				album: this.currentAudio.author ? this.currentAudio.author : '',
 				duration, // Not OK
 				description: '', // Android Only
 				color: 0x555555, // Notification Color - Android Only
