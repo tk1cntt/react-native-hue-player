@@ -198,7 +198,6 @@ class AudioControls extends Component {
     }
 
     render() {
-        console.log(this);
         const { currentTime, duration } = this.state;
         return (
             <View style={styles.container}>
