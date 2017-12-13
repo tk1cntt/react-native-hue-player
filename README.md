@@ -62,17 +62,18 @@ import { AudioControls } from 'react-native-hue-player';
 
 Props:
 
-|             Name              | Type              | Default | Description |
-| ----------------------------- | ----------------- | ------- | ----------- |
-| activeColor                   | color             | '#FFF'  | ----------- |
-| inactiveColor                 | color             | '#888'  | ----------- |
-| hasButtonForForward           | boolean           | false   | ----------- |
-| timeForFoward                 | integer           | 15      | ----------- |
-| thumbnailSize                 | image style props | -       | ----------- |
-| titleStyle                    | text style props  | -       | ----------- |
-| authorStyle                   | text style props  | -       | ----------- |
-| activeButtonColor             | color             | '#FFF'  | ----------- |
-| inactiveButtonColor           | color             | '#888'  | ----------- |
-| sliderMinimumTrackTintColor   | color             | '#FFF'  | ----------- |
-| sliderMaximumTrackTintColor   | color             | '#FFF'  | ----------- |
-| sliderThumbTintColor          | color             | '#FFF'  | ----------- |
+|             Name              | Type              | Default       | Description                                                                            |
+| ----------------------------- | ----------------- | ------------- | -------------------------------------------------------------------------------------- |
+| activeColor                   | color             | '#FFF'        | Main color of the compontent, used as default when buttons are active                  |
+| inactiveColor                 | color             | '#888'        | Secondary color of the compontent, used as default when buttons are inactive/disabled  |
+| hasButtonSkipSeconds          | boolean           | false         | Does you player has buttons to skip secods?                                            |
+| timeToSkip                    | integer           | 15            | How many seconds you want your skip on your buttons                                    |
+| thumbnailSize                 | image style props | -             | Size of the cover thumbnail                                                            |
+| titleStyle                    | text style props  | -             | Custom style for the audio title                                                       |
+| authorStyle                   | text style props  | -             | Custom style for the author name                                                       |
+| activeButtonColor             | color             | activeColor   | Custom color for the buttons (play, pause, skip...) when they are active               |
+| inactiveButtonColor           | color             | inactiveColor | Custom color for the buttons (play, pause, skip...) when they are inactive/disabled    |
+| sliderMinimumTrackTintColor   | color             | activeColor   | Custom color on the left side of the slider                                            |
+| sliderMaximumTrackTintColor   | color             | activeColor   | Custom color on the right side of the slider                                           |
+| sliderThumbTintColor          | color             | activeColor   | Custom color of the slider circle                                                      |
+
