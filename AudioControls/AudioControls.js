@@ -21,10 +21,6 @@ class AudioControls extends Component {
     static defaultProps = {
         ...Component.defaultProps,
 
-        //COLORS
-        activeColor: colors.white,
-        inactiveColor: colors.grey,
-
         //SKIP SECONDS
         hasButtonSkipSeconds: false,
         timeToSkip: 15,
@@ -46,14 +42,18 @@ class AudioControls extends Component {
             color: colors.white
         },
 
+        //COLORS
+        activeColor: colors.white,
+        inactiveColor: colors.grey,
+
         //BUTTONS
-        activeButtonColor: colors.white,
-        inactiveButtonColor: colors.grey,
+        activeButtonColor: this.activeColor,
+        inactiveButtonColor: this.inactiveColor,
 
         //SLIDER
-        sliderMinimumTrackTintColor: colors.grey,
-        sliderMaximumTrackTintColor: colors.white,
-        sliderThumbTintColor: colors.white,
+        sliderMinimumTrackTintColor: this.inactiveColor,
+        sliderMaximumTrackTintColor: this.activeColor,
+        sliderThumbTintColor: this.activeColor,
         sliderTimeStyle: {
             fontSize: 18,
             color: colors.white
