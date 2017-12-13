@@ -32,8 +32,8 @@ export default class App extends Component {
           initialTrack={0}
           playlist={playlist}
 
-          hasButtonForForward
-          timeForFoward={30}
+          hasButtonSkipSeconds
+          timeToSkip={30}
         />
       </View>
     );
