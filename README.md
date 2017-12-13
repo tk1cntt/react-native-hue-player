@@ -77,3 +77,26 @@ Props:
 | sliderMaximumTrackTintColor   | color             | activeColor   | Custom color on the right side of the slider                                           |
 | sliderThumbTintColor          | color             | activeColor   | Custom color of the slider circle                                                      |
 
+#### AudioController
+
+If you don't want to use our component you are free to implement one of your own. The AudioController is a singleton class that provides data from the current audio, including its status, and functions to manipulate the playlist and to control the player.
+
+To use the AudioController class just import it on your component (if you do it in more than one component it will be the same instance).
+
+```js
+import { AudioController } from 'react-native-hue-player';
+
+...
+function wheneverYouNeed(){
+  AudioController.init(playlistSample, initialTrack, this.onChangeStatus, this.updateCurrentTime);
+}
+
+```
+
+| Function | Params | Descriptions|
+|init | playlist: array, track: integer, onChangeStatus: function, onChangeCurrentTime: function | Initiate the audioController with the given playlist. Has optional initial track and two callback functions, called when the audio status changes and every second when currentTime changes.
+
+
+### Example
+
+The project is linked already.
