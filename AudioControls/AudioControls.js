@@ -25,9 +25,9 @@ class AudioControls extends Component {
         activeColor: colors.white,
         inactiveColor: colors.grey,
 
-        //FORWARD
-        hasButtonForForward: false,
-        timeForFoward: 15,
+        //SKIP SECONDS
+        hasButtonSkipSeconds: false,
+        timeToSkip: 15,
 
         //THUMBNAIL
         thumbnailSize: {
@@ -172,11 +172,11 @@ class AudioControls extends Component {
     }
 
     renderSkipbackwardIcon() {
-        if (!this.props.hasButtonForForward) return;
+        if (!this.props.hasButtonSkipSeconds) return;
         return (
             <TouchableOpacity
                 onPress={() => {
-                    AudioController.seekToForward(-this.props.timeForFoward);
+                    AudioController.seekToForward(-this.props.timeToSkip);
                 }}
             >
                 <Image
@@ -188,11 +188,11 @@ class AudioControls extends Component {
     }
 
     renderSkipforwardIcon() {
-        if (!this.props.hasButtonForForward) return;
+        if (!this.props.hasButtonSkipSeconds) return;
         return (
             <TouchableOpacity
                 onPress={() => {
-                    AudioController.seekToForward(this.props.timeForFoward);
+                    AudioController.seekToForward(this.props.timeToSkip);
                 }}
             >
                 <Image
