@@ -32,6 +32,9 @@ export default class App extends Component {
           initialTrack={0}
           playlist={playlist}
 
+          activeColor={'#fdfa04'}
+          inactiveColor={'#fdfab1'}
+
           hasButtonSkipSeconds
           timeToSkip={30}
         />
