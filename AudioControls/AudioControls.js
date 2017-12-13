@@ -22,8 +22,8 @@ class AudioControls extends Component {
         ...Component.defaultProps,
 
         //COLORS
-        activeColor: colors.green,
-        inactiveColor: '#888',
+        activeColor: colors.white,
+        inactiveColor: colors.grey,
 
         //FORWARD
         hasButtonForForward: false,
@@ -37,21 +37,27 @@ class AudioControls extends Component {
 
         //SOUND
         titleStyle: {
-            fontSize: 16
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: colors.white
         },
         authorStyle: {
-            fontSize: 14
+            fontSize: 16,
+            color: colors.white
         },
 
         //BUTTONS
-        activeButtonColor: this.activeColor,
-        inactiveButtonColor: this.inactiveColor,
+        activeButtonColor: colors.white,
+        inactiveButtonColor: colors.grey,
 
         //SLIDER
-        sliderMinimumTrackTintColor: this.activeColor,
-        sliderMaximumTrackTintColor: this.activeColor,
-        sliderThumbTintColor: this.activeColor,
-        sliderTimeStyle: { fontSize: 18 }
+        sliderMinimumTrackTintColor: colors.grey,
+        sliderMaximumTrackTintColor: colors.white,
+        sliderThumbTintColor: colors.white,
+        sliderTimeStyle: {
+            fontSize: 18,
+            color: colors.white
+        }
     }
 
     constructor(props) {
@@ -205,8 +211,10 @@ class AudioControls extends Component {
                     source={{ uri: this.state.currentAudio.thumbnail }}
                     style={this.props.thumbnailSize}
                 />
-                <Text style={this.props.titleStyle}>{this.state.currentAudio.title}</Text>
-                <Text style={this.props.authorStyle}>{this.state.currentAudio.author}</Text>
+                <View style={styles.detailContainer}>
+                    <Text style={this.props.titleStyle}>{this.state.currentAudio.title}</Text>
+                    <Text style={this.props.authorStyle}>{this.state.currentAudio.author}</Text>
+                </View>
                 <View style={styles.playbackContainer}>
                     <Text numberOfLines={1} style={this.props.sliderTimeStyle}>
                         {currentTime ? moment(currentTime * 1000).format('mm:ss') : '00:00'}
@@ -249,6 +257,13 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center'
+    },
+    detailContainer: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 15,
+        marginVertical: 10
     },
     playbackContainer: {
         flexDirection: 'row'
