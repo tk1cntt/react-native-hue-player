@@ -94,6 +94,7 @@ function wheneverYouNeed(){
 ```
 
 | Function | Params | Descriptions|
+|----------|--------|-------------|
 |init | playlist: array, track: integer, onChangeStatus: function, onChangeCurrentTime: function | Initiate the audioController with the given playlist. Has optional initial track and two callback functions, called when the audio status changes and every second when currentTime changes.
 
 
