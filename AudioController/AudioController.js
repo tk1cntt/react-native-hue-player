@@ -90,6 +90,7 @@ class AudioController {
 	 * @param {*Function} isLoaded 
 	 */
 	load(audio, isLoaded) {
+		this.musicControlReset();
 		this.currentAudio = audio;
 		//Verificar se o arquivo de áudio já foi baixado para definir player
 		if (this.currentAudio.path) {
@@ -156,7 +157,7 @@ class AudioController {
 
 		this.paused = false;
 		this.onChangeStatus(this.status.PLAYING);
-		this.music_control_play();
+		this.musicControlPlay();
 	}
 
 	pause() {
@@ -171,7 +172,7 @@ class AudioController {
 		this.clearCurrentTimeListener();
 		this.paused = true;
 		this.onChangeStatus(this.status.PAUSED);
-		this.music_control_pause();
+		this.musicControlPause();
 	}
 
 	seek(seconds) {
@@ -181,7 +182,7 @@ class AudioController {
 			this.clearCurrentTimeListener();
 			this.player.pause();
 			this.paused = true;
-			this.music_control_pause();
+			this.musicControlPause();
 			this.currentAudio.currentTime = 0;
 			this.onChangeStatus(this.status.STOPPED);
 			return;
@@ -201,8 +202,8 @@ class AudioController {
 		//Atualiza tempo atual
 		this.currentAudio.currentTime = newCurrentTime;
 		this.currentAudioListener(seconds);
-		this.music_control_seek(seconds);
-		this.music_control_refresh();
+		this.musicControlSeek(seconds);
+		this.musicControlRefresh();
 	}
 
 	seekToForward(seconds) {
@@ -328,24 +329,8 @@ class AudioController {
 		}
 	}
 
-	//ESTÁ EM USO?
-	isPlaying(callback) {
-		if (this.player == null) return;
-		if (this.type === 'streaming') {
-			this.player.status((err, status) => {
-				if (!err) {
-					callback(status === 'PLAYING');
-				} else {
-					callback(false);
-				}
-			});
-		} else {
-			this.player.getCurrentTime((seconds, isPLaying) => callback(isPlaying));
-		}
-	}
-
 	onAudioFinish() {
-		this.music_control_reset();
+		this.musicControlReset();
 		clearInterval(this.currentTimeListener);
 	}
 
@@ -359,23 +344,17 @@ class AudioController {
 	}
 
 	startMusicControl() {
-		this.getDuration((duration) => {
-			this.initializeMusicControlEvents();
-			MusicControl.setNowPlaying({
-				title: this.currentAudio.title, //OK
-				artwork: this.currentAudio.thumbnail, //OK
-				artist: this.currentAudio.author, //OK
-				album: this.currentAudio.author ? this.currentAudio.author : '',
-				duration, // Not OK
-				description: '', // Android Only
-				color: 0x555555, // Notification Color - Android Only
-				date: '', // Release Date (RFC 3339) - Android Only
-			});
-			this.musicControlsEnableControls();
+		this.initializeMusicControlEvents();
+		MusicControl.setNowPlaying({
+			title: this.currentAudio.title, //OK
+			artwork: this.currentAudio.thumbnail, //OK
+			artist: this.currentAudio.author, //OK
+			album: this.currentAudio.author ? this.currentAudio.author : ''
 		});
+		this.musicControlsEnableControls();
 	}
 
-	music_control_pause() {
+	musicControlPause() {
 		this.getCurrentTime((elapsedTime) => {
 			MusicControl.updatePlayback({
 				state: MusicControl.STATE_PAUSED,
@@ -384,7 +363,7 @@ class AudioController {
 		});
 	}
 
-	music_control_play() {
+	musicControlPlay() {
 		this.getCurrentTime((elapsedTime) => {
 			MusicControl.updatePlayback({
 				state: MusicControl.STATE_PLAYING,
@@ -393,7 +372,7 @@ class AudioController {
 		});
 	}
 
-	music_control_refresh() {
+	musicControlRefresh() {
 		this.getDuration((duration) => {
 			this.getCurrentTime((elaspsedTime) => {
 				MusicControl.updatePlayback({
@@ -401,10 +380,10 @@ class AudioController {
 					duration,
 				});
 			});
-		})
+		});
 	}
 
-	music_control_seek(elaspsedTime) {
+	musicControlSeek(elaspsedTime) {
 		this.getDuration((duration) => {
 			MusicControl.updatePlayback({
 				elaspsedTime,
@@ -413,18 +392,18 @@ class AudioController {
 		});
 	}
 
-	music_control_reset() {
+	musicControlReset() {
 		MusicControl.resetNowPlaying();
 	}
 
 	initializeMusicControlEvents() {
 		MusicControl.on('pause', () => {
 			this.pause();
-			this.music_control_pause();
+			this.musicControlPause();
 		});
 		MusicControl.on('play', () => {
 			this.play();
-			this.music_control_play();
+			this.musicControlPlay();
 		});
 		MusicControl.on('skipForward', () => {
 			this.skip(30);
@@ -432,7 +411,6 @@ class AudioController {
 		MusicControl.on('skipBackward', () => {
 			this.skip(-30);
 		}); // iOS only
-
 	}
 }
 
