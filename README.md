@@ -6,7 +6,7 @@ Now you can play, pause, skip and seek audios from diferent sources on the same 
 This project is based on ['react-native-audio-streamer'] (https://github.com/indiecastfm/react-native-audio-streamer),
 ['react-native-sound'] (https://github.com/zmxv/react-native-sound) and uses ['react-native-music-control'] (https://github.com/tanguyantoine/react-native-music-control).
 
-![print](https://raw.github.com/App2Sales/react-native-hue-player/develop/path/Example/prints/print1.jpg)
+![print](https://raw.githubusercontent.com/App2Sales/react-native-hue-player/develop/path/Example/prints/print1.jpg)
 ## Getting Started
 
 In order to use this component you have to set up a playlist of audio files. Those audio files must have some attributes, as shown on the schema bellow: 
