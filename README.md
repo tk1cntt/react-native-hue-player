@@ -3,8 +3,8 @@
 HUE Player is intended to projects that need to deal with both offline/local and online/streaming audio.
 Now you can play, pause, skip and seek audios from diferent sources on the same playlist.
 
-This project is based on ['react-native-audio-streamer'] (https://github.com/indiecastfm/react-native-audio-streamer),
-['react-native-sound'] (https://github.com/zmxv/react-native-sound) and uses ['react-native-music-control'] (https://github.com/tanguyantoine/react-native-music-control).
+This project is based on ['ract-native-audio-streamer'](https://github.com/indiecastfm/react-native-audio-streamer),
+['react-native-sound'](https://github.com/zmxv/react-native-sound) and uses ['react-native-music-control'](https://github.com/tanguyantoine/react-native-music-control).
 
 ![print](/Example/prints/print1.jpg)
 ## Getting Started
