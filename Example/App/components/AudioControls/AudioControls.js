@@ -218,7 +218,8 @@ class AudioControls extends Component {
             >
                 <Image
                     source={images.skipForward}
-                    style={[styles.controlButton, { tintColor: this.props.activeButtonColor || this.props.activeColor }]}
+                    style={[styles.controlButton, { tintColor: this.props.activeButtonColor ||
+                        this.props.activeColor }]}
                 />
             </TouchableOpacity>
         );

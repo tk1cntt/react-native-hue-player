@@ -3,8 +3,8 @@
 HUE Player is intended to projects that need to deal with both offline/local and online/streaming audio.
 Now you can play, pause, skip and seek audios from diferent sources on the same playlist.
 
-This project is based on ['react-native-audio-streamer'] (https://github.com/indiecastfm/react-native-audio-streamer),
-['react-native-sound'] (https://github.com/zmxv/react-native-sound) and uses ['react-native-music-control'] (https://github.com/tanguyantoine/react-native-music-control).
+This project is based on ['ract-native-audio-streamer'](https://github.com/indiecastfm/react-native-audio-streamer),
+['react-native-sound'](https://github.com/zmxv/react-native-sound) and uses ['react-native-music-control'](https://github.com/tanguyantoine/react-native-music-control).
 
 ![print](/Example/prints/print1.jpg)
 ## Getting Started
@@ -77,3 +77,27 @@ Props:
 | sliderMaximumTrackTintColor   | color             | activeColor   | Custom color on the right side of the slider                                           |
 | sliderThumbTintColor          | color             | activeColor   | Custom color of the slider circle                                                      |
 
+#### AudioController
+
+If you don't want to use our component you are free to implement one of your own. The AudioController is a singleton class that provides data from the current audio, including its status, and functions to manipulate the playlist and to control the player.
+
+To use the AudioController class just import it on your component (if you do it in more than one component it will be the same instance).
+
+```js
+import { AudioController } from 'react-native-hue-player';
+
+...
+function wheneverYouNeed(){
+  AudioController.init(playlistSample, initialTrack, this.onChangeStatus, this.updateCurrentTime);
+}
+
+```
+
+| Function | Params | Descriptions|
+|----------|--------|-------------|
+|init | playlist: array, track: integer, onChangeStatus: function, onChangeCurrentTime: function | Initiate the audioController with the given playlist. Has optional initial track and two callback functions, called when the audio status changes and every second when currentTime changes.
+
+
+### Example
+
+The project is linked already.
