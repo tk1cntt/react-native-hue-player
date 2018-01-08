@@ -43,7 +43,13 @@ react-native link react-native-music-control
 ```
 ### Usage
 
-All you need to control your audio files is provided by the AudioController class, but if you want to use or customize our ready-to-go interface you can import the AudioControls component.
+You have to list your audio files on your playlist array, as showed before. The 'url' field is meant for streaming audio files, while the 'path' field is for the local files. 
+
+To handle local files you need to follow some rules defined on the [React Native Sound documentation](https://github.com/zmxv/react-native-sound):
+
+> Save your sound clip files under the directory android/app/src/main/res/raw. Note that files in this directory must be lowercase and underscored (e.g. my_file_name.mp3) and that subdirectories are not supported by Android.
+
+Now, all you need to control your audio files is provided by the AudioController class, but if you want to use or customize our ready-to-go interface you can import the AudioControls component.
 
 #### AudioControls
 
@@ -93,9 +99,22 @@ function wheneverYouNeed(){
 
 ```
 
+Possible status: PLAYING, LOADING, LOADED, PAUSED, STOPPED, SEEKING, ERROR.
+
 | Function | Params | Descriptions|
 |----------|--------|-------------|
-|init | playlist: array, track: integer, onChangeStatus: function, onChangeCurrentTime: function | Initiate the audioController with the given playlist. Has optional initial track and two callback functions, called when the audio status changes and every second when currentTime changes.
+|init | playlist: array, track: integer, onChangeStatus: function, onChangeCurrentTime: function | Initiate the audioController with the given playlist. Has optional initial track and two callback functions, called when the audio status changes and every second when currentTime changes.|
+|load | audio: object, isLoaded: function | Loads an audio file and returns a callback when its loaded.|
+|play | none | Plays the 'currentAudio', defined with load function |
+|pause | none | Pauses the 'currentAudio |
+|seek | seconds: integer | Seeks to the target second. |
+|skip | seconds: integer | Jumps to the position resulting from currentTime + seconds. |
+|hasTrack | index: integer | Checks if the target index exists in playlist. |
+|hasNext | none | Checks if there is an audio on next position of the playlist. |
+|hasPrevious | none | Checks if there is an audio on previous position of the playlist. |
+|playNext | none | Plays the audio on next position of the playlist. |
+|playPrevious | none | Plays the audio on previous position of the playlist. |
+|playAnotherTrack| index: integer | Plays the audio on target position of the playlist. |
 
 
 ### Example
