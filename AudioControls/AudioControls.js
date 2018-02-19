@@ -225,16 +225,16 @@ class AudioControls extends Component {
     }
 
     render() {
-        const { currentTime, duration } = this.state;
+        const { currentTime, duration, currentAudio } = this.state;
         return (
             <View style={styles.container}>
                 <Image
-                    source={{ uri: this.state.currentAudio.thumbnail }}
+                    source={currentAudio.thumbnailUri ? { uri: currentAudio.thumbnailUri } : currentAudio.thumbnailLocal}
                     style={this.props.thumbnailSize}
                 />
                 <View style={styles.detailContainer}>
-                    <Text style={this.props.titleStyle}>{this.state.currentAudio.title}</Text>
-                    <Text style={this.props.authorStyle}>{this.state.currentAudio.author}</Text>
+                    <Text style={this.props.titleStyle}>{currentAudio.title}</Text>
+                    <Text style={this.props.authorStyle}>{currentAudio.author}</Text>
                 </View>
                 <View style={styles.playbackContainer}>
                     <Text numberOfLines={1} style={this.props.sliderTimeStyle}>

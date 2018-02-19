@@ -218,24 +218,34 @@ class AudioControls extends Component {
             >
                 <Image
                     source={images.skipForward}
-                    style={[styles.controlButton, { tintColor: this.props.activeButtonColor ||
-                        this.props.activeColor }]}
+                    style={[
+                        styles.controlButton,
+                        {
+                            tintColor: this.props.activeButtonColor
+                                || this.props.activeColor
+                        }]}
                 />
             </TouchableOpacity>
         );
     }
 
     render() {
-        const { currentTime, duration } = this.state;
+        const { currentTime, duration, currentAudio } = this.state;
+
+        const thumbnailSource = currentAudio.thumbnailUri ?
+            { uri: currentAudio.thumbnailUri } : currentAudio.thumbnailLocal;
+
+        console.log('Music', currentAudio);
+
         return (
             <View style={styles.container}>
                 <Image
-                    source={{ uri: this.state.currentAudio.thumbnail }}
+                    source={thumbnailSource}
                     style={this.props.thumbnailSize}
                 />
                 <View style={styles.detailContainer}>
-                    <Text style={this.props.titleStyle}>{this.state.currentAudio.title}</Text>
-                    <Text style={this.props.authorStyle}>{this.state.currentAudio.author}</Text>
+                    <Text style={this.props.titleStyle}>{currentAudio.title}</Text>
+                    <Text style={this.props.authorStyle}>{currentAudio.author}</Text>
                 </View>
                 <View style={styles.playbackContainer}>
                     <Text numberOfLines={1} style={this.props.sliderTimeStyle}>

@@ -347,7 +347,7 @@ class AudioController {
 		this.initializeMusicControlEvents();
 		MusicControl.setNowPlaying({
 			title: this.currentAudio.title, //OK
-			artwork: this.currentAudio.thumbnail, //OK
+			artwork: this.currentAudio.thumbnailUri ? this.currentAudio.thumbnailUri : this.currentAudio.thumbnailLocal, //OK
 			artist: this.currentAudio.author, //OK
 			album: this.currentAudio.author ? this.currentAudio.author : ''
 		});
