@@ -11,9 +11,9 @@ import {
 import moment from 'moment';
 import 'moment/locale/pt-br';
 
-import images from '../../config/images';
-import colors from '../../config/colors';
-import AudioController from '../../utils/AudioController';
+import images from '../config/images';
+import colors from '../config/colors';
+import AudioController from '../AudioController';
 
 const { width } = Dimensions.get('window');
 
