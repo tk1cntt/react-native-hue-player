@@ -13,8 +13,21 @@ In order to use this component you have to set up a playlist of audio files. Tho
 
 ```js
 const playlistSample = [
-  {key: 'audio01', title:'Irineu', url: 'http://vocenaosabe.nem/eu.mp3'}, 
-  {key: 'audio02', title:'SerjaoBerranteiro', url: 'http://aquitem.corage', path: 'matadorDeOnca.mp3'}
+  {
+    key: 'audio01', 
+    title:'Irineu', 
+    author: 'Irineu (Classic)',
+    url: 'http://vocenaosabe.nem/eu.mp3',
+    thumbnailLocal: require('../assets/img/thumbnail.jpg')
+  }, 
+  {
+    key: 'audio02', 
+    title:'SerjaoBerranteiro',
+    author: 'Serjão',
+    url: 'http://aquitem.corage',
+    path: 'matadorDeOnca.mp3',
+    thumbnailUri: 'http://images.uncyc.org/pt/c/c1/Serj%C3%A3o_entrevista.jpg'
+  }
 ];
 ```
 Note that the audio objects may have other fields, but "key", "title" and "url" are required.
