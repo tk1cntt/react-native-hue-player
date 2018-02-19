@@ -20,6 +20,17 @@ const playlistSample = [
 Note that the audio objects may have other fields, but "key", "title" and "url" are required.
 By default the first track to be played is the first one on playlist array.
 
+Attributes of audio:
+|  Name  |  Type  |  Default  |  Description  |
+|  ----  |  ----  |  -------  |  -----------  |
+|key|String|-|Key of audio|
+|title|String|-|Title of audio|
+|url|String|-|Path to external audio|
+|path|String|-|Path to local audio|
+|thumbnailUri|String|-|Path to external thumbnail|
+|thumbnailLocal|String|-|Path to local thumbnail|
+|author|String|-|Author of audio|
+
 ### Installing
 
 Install on your project root using:
