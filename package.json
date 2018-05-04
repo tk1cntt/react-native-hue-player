@@ -20,7 +20,7 @@
   ],
   "dependencies": {
     "moment": "^2.19.3",
-    "react-native-audio-streamer": "https://github.com/App2Sales/react-native-audio-streamer/tarball/master",
+    "react-native-audio-streamer": "https://github.com/tk1cntt/react-native-audio-streamer/tarball/upgrade-exoplayer",
     "react-native-music-control": "^0.4.13",
     "react-native-sound": "^0.10.4"
   },
