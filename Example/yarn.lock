@@ -3849,9 +3849,9 @@ react-devtools-core@^2.5.0:
     shell-quote "^1.6.1"
     ws "^2.0.3"
 
-react-native-audio-streamer@^0.0.9:
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/react-native-audio-streamer/-/react-native-audio-streamer-0.0.9.tgz#d08f5f71ea53bc20e8520fbbf21bb695dd85d127"
+"react-native-audio-streamer@https://github.com/tk1cntt/react-native-audio-streamer/tarball/upgrade-exoplayer":
+  version "0.0.11"
+  resolved "https://github.com/tk1cntt/react-native-audio-streamer/tarball/upgrade-exoplayer#072dfed438fdb276adb4b40d6c36efe838333a1b"
 
 react-native-music-control@^0.4.13:
   version "0.4.13"
